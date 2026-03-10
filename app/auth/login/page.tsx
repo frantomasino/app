@@ -9,11 +9,12 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { FieldGroup, Field, FieldLabel } from "@/components/ui/field"
 import { Spinner } from "@/components/ui/spinner"
-import { FileText } from "lucide-react"
+import { Eye, EyeOff, FileText } from "lucide-react"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -30,7 +31,13 @@ export default function LoginPage() {
     })
 
     if (error) {
-      setError(error.message)
+      let errorMessage = "Ocurrió un error al iniciar sesión."
+
+      if (error.message === "Invalid login credentials") {
+        errorMessage = "Email o contraseña incorrectos."
+      }
+
+      setError(errorMessage)
       setLoading(false)
       return
     }
@@ -43,9 +50,9 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-primary">
-              <FileText className="w-6 h-6 text-primary-foreground" />
+          <div className="mb-4 flex justify-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary">
+              <FileText className="h-6 w-6 text-primary-foreground" />
             </div>
           </div>
           <CardTitle className="text-2xl">Generador de Remitos</CardTitle>
@@ -78,14 +85,29 @@ export default function LoginPage() {
                   </Link>
                 </div>
 
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="pr-11"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute inset-y-0 right-0 flex items-center justify-center px-3 text-muted-foreground transition-colors hover:text-foreground"
+                    aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                  >
+                    {showPassword ? (
+                      <Eye className="h-4 w-4" />
+                    ) : (
+                      <EyeOff className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
               </Field>
             </FieldGroup>
 
@@ -98,7 +120,7 @@ export default function LoginPage() {
               Iniciar sesión
             </Button>
 
-            <p className="text-sm text-center text-muted-foreground">
+            <p className="text-center text-sm text-muted-foreground">
               ¿No tenés cuenta?{" "}
               <Link href="/auth/sign-up" className="font-medium text-primary hover:underline">
                 Registrate

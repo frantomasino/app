@@ -35,7 +35,15 @@ export default function ForgotPasswordPage() {
     })
 
     if (error) {
-      setError(error.message)
+      let errorMessage = "No se pudo enviar el enlace de recuperación."
+
+      if (error.message.includes("Unable to validate email address")) {
+        errorMessage = "Ingresá un email válido."
+      } else if (error.message.includes("email rate limit exceeded")) {
+        errorMessage = "Se alcanzó el límite de envíos de email. Probá de nuevo más tarde."
+      }
+
+      setError(errorMessage)
       setLoading(false)
       return
     }
