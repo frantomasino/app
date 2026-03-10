@@ -25,13 +25,17 @@ export default async function ProductosPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-2">
-        <h1 className="text-2xl font-bold text-foreground">Productos</h1>
+        <h1 className="text-2xl font-bold text-foreground">Inventario</h1>
         <p className="text-muted-foreground">
           Importá o exportá tu catálogo para manejar tus listas de precios desde la app.
         </p>
       </div>
 
-      <ProductsImportExport userId={user.id} products={safeProducts} />
+      <ProductsImportExport
+        userId={user.id}
+        products={safeProducts}
+        showEmptyStateTrigger
+      />
 
       <Card>
         <CardHeader>
@@ -41,11 +45,7 @@ export default async function ProductosPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {safeProducts.length === 0 ? (
-            <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-              Todavía no cargaste productos. Podés importar un archivo CSV o Excel desde esta misma pantalla.
-            </div>
-          ) : (
+          {safeProducts.length === 0 ? null : (
             <div className="overflow-x-auto rounded-lg border">
               <table className="min-w-full text-sm">
                 <thead className="bg-muted/50">

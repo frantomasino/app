@@ -37,14 +37,14 @@ export default async function NuevoRemitoPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Nuevo Remito</h1>
-        <p className="text-muted-foreground">Creá un nuevo remito para tu cliente</p>
+        <h1 className="text-2xl font-bold text-foreground">Nueva venta</h1>
+        <p className="text-muted-foreground">Creá una nueva venta para tu cliente</p>
       </div>
 
       <RemitoForm
         userId={user.id}
-        clients={clients ?? []}
-        products={products ?? []}
+        clients={clients || []}
+        products={products || []}
         nextNumber={nextNumber}
       />
     </div>

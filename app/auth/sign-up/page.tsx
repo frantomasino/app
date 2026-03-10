@@ -26,7 +26,7 @@ export default function SignUpPage() {
 
     const redirectTo =
       typeof window !== "undefined"
-        ? `${window.location.origin}/auth/update-password`
+        ? `${window.location.origin}/auth/login`
         : undefined
 
     const { error } = await supabase.auth.signUp({

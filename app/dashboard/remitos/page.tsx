@@ -1,8 +1,11 @@
+import Link from "next/link"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
-import { RemitoForm } from "@/components/remito-form"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { FileText, Plus } from "lucide-react"
 
-export default async function NuevoRemitoPage() {
+export default async function VentasPage() {
   const supabase = await createClient()
   const {
     data: { user },
@@ -12,41 +15,82 @@ export default async function NuevoRemitoPage() {
     redirect("/auth/login")
   }
 
-  const { data: clients } = await supabase
-    .from("clients")
-    .select("*")
-    .eq("company_id", user.id)
-    .order("name", { ascending: true })
-
-  const { data: products } = await supabase
-    .from("products")
-    .select("*")
-    .eq("company_id", user.id)
-    .order("name", { ascending: true })
-
-  const { data: lastRemito } = await supabase
+  const { data: remitos } = await supabase
     .from("remitos")
-    .select("number")
+    .select("*")
     .eq("company_id", user.id)
-    .order("number", { ascending: false })
-    .limit(1)
-    .maybeSingle()
-
-  const nextNumber = lastRemito ? lastRemito.number + 1 : 1
+    .order("created_at", { ascending: false })
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Nuevo Remito</h1>
-        <p className="text-muted-foreground">Creá un nuevo remito para tu cliente</p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Ventas</h1>
+          <p className="text-muted-foreground">Acá podés ver todas las ventas registradas</p>
+        </div>
+
+        <Button asChild>
+          <Link href="/dashboard/remitos/nuevo">
+            <Plus className="mr-2 h-4 w-4" />
+            Nueva venta
+          </Link>
+        </Button>
       </div>
 
-      <RemitoForm
-        userId={user.id}
-        clients={clients || []}
-        products={products || []}
-        nextNumber={nextNumber}
-      />
+      <Card>
+        <CardHeader>
+          <CardTitle>Listado de ventas</CardTitle>
+          <CardDescription>Todas las ventas cargadas en tu cuenta</CardDescription>
+        </CardHeader>
+
+        <CardContent>
+          {remitos && remitos.length > 0 ? (
+            <div className="space-y-4">
+              {remitos.map((remito) => (
+                <Link
+                  key={remito.id}
+                  href={`/dashboard/remitos/${remito.id}`}
+                  className="flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-muted/50"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/10">
+                      <FileText className="h-5 w-5 text-primary" />
+                    </div>
+
+                    <div>
+                      <p className="font-medium">Venta #{remito.number}</p>
+                      <p className="text-sm text-muted-foreground">{remito.client_name}</p>
+                    </div>
+                  </div>
+
+                  <div className="text-right">
+                    <p className="font-medium">
+                      ${Number(remito.total).toLocaleString("es-AR", { minimumFractionDigits: 2 })}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(remito.date).toLocaleDateString("es-AR")}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="py-10 text-center">
+              <FileText className="mx-auto h-12 w-12 text-muted-foreground/50" />
+              <h3 className="mt-2 text-sm font-medium">No hay ventas registradas</h3>
+              <p className="mt-1 text-sm text-muted-foreground">Todavía no cargaste ninguna venta.</p>
+              <div className="mt-4">
+                <Button asChild>
+                  <Link href="/dashboard/remitos/nuevo">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Crear venta
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

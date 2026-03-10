@@ -10,12 +10,19 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Spinner } from "@/components/ui/spinner"
-import { Download, FileSpreadsheet, Upload, FileDown, AlertCircle } from "lucide-react"
+import { Download, FileSpreadsheet, Upload, FileDown, AlertCircle, Settings } from "lucide-react"
 import { useRouter } from "next/navigation"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 interface ProductsImportExportProps {
   userId: string
   products: Product[]
+  showEmptyStateTrigger?: boolean
 }
 
 const EXPORT_HEADERS = ["codigo", "nombre", "unidad", "precio_1", "precio_2", "precio_3"]
@@ -85,7 +92,11 @@ function parseTsvText(text: string) {
   })
 }
 
-export function ProductsImportExport({ userId, products }: ProductsImportExportProps) {
+export function ProductsImportExport({
+  userId,
+  products,
+  showEmptyStateTrigger = false,
+}: ProductsImportExportProps) {
   const inputRef = useRef<HTMLInputElement | null>(null)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
@@ -207,10 +218,44 @@ export function ProductsImportExport({ userId, products }: ProductsImportExportP
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Importar y exportar catálogo</CardTitle>
-        <CardDescription>
-          Podés cargar tu lista desde CSV o Excel. En esta versión, al importar se reemplaza el catálogo actual de tu empresa.
-        </CardDescription>
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <CardTitle>Importar y exportar catálogo</CardTitle>
+            <CardDescription>
+              Podés cargar tu lista desde CSV o Excel. En esta versión, al importar se reemplaza el catálogo actual de tu empresa.
+            </CardDescription>
+          </div>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button type="button" variant="outline" size="icon" disabled={loading}>
+                {loading ? <Spinner className="h-4 w-4" /> : <Settings className="h-4 w-4" />}
+              </Button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => inputRef.current?.click()}>
+                <Upload className="mr-2 h-4 w-4" />
+                Importar registros
+              </DropdownMenuItem>
+
+              <DropdownMenuItem onClick={handleExportCsv} disabled={products.length === 0}>
+                <FileDown className="mr-2 h-4 w-4" />
+                Exportar CSV
+              </DropdownMenuItem>
+
+              <DropdownMenuItem onClick={handleExportExcel} disabled={products.length === 0}>
+                <FileSpreadsheet className="mr-2 h-4 w-4" />
+                Exportar Excel
+              </DropdownMenuItem>
+
+              <DropdownMenuItem onClick={handleTemplateDownload}>
+                <Download className="mr-2 h-4 w-4" />
+                Descargar plantilla
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </CardHeader>
 
       <CardContent className="space-y-4">
@@ -222,38 +267,6 @@ export function ProductsImportExport({ userId, products }: ProductsImportExportP
           onChange={handleFileChange}
         />
 
-        <div className="flex flex-wrap gap-3">
-          <Button type="button" onClick={() => inputRef.current?.click()} disabled={loading}>
-            {loading ? <Spinner className="mr-2" /> : <Upload className="mr-2 h-4 w-4" />}
-            Importar CSV / Excel
-          </Button>
-
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleExportCsv}
-            disabled={products.length === 0}
-          >
-            <FileDown className="mr-2 h-4 w-4" />
-            Exportar CSV
-          </Button>
-
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleExportExcel}
-            disabled={products.length === 0}
-          >
-            <FileSpreadsheet className="mr-2 h-4 w-4" />
-            Exportar Excel
-          </Button>
-
-          <Button type="button" variant="secondary" onClick={handleTemplateDownload}>
-            <Download className="mr-2 h-4 w-4" />
-            Descargar plantilla
-          </Button>
-        </div>
-
         <div className="rounded-lg border bg-muted/20 p-4 text-sm text-muted-foreground">
           Formatos aceptados:
           <br />
@@ -263,6 +276,26 @@ export function ProductsImportExport({ userId, products }: ProductsImportExportP
           <br />
           <strong>descripcion, precio</strong>
         </div>
+
+        {showEmptyStateTrigger && products.length === 0 ? (
+  <button
+    type="button"
+    onClick={() => inputRef.current?.click()}
+    disabled={loading}
+    className="flex w-full flex-col items-center justify-center gap-3 rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground transition hover:bg-muted/40 disabled:cursor-not-allowed disabled:opacity-60"
+  >
+    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+      {loading ? <Spinner className="h-5 w-5" /> : <Upload className="h-5 w-5" />}
+    </div>
+
+    <div className="space-y-1">
+      <p className="font-medium text-foreground">Todavía no cargaste productos</p>
+      <p className="text-sm text-muted-foreground">
+        Tocá acá para importar un archivo CSV o Excel.
+      </p>
+    </div>
+  </button>
+) : null}
 
         {message ? (
           <Alert>
