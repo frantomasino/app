@@ -30,6 +30,7 @@ export interface Remito {
   client_cuit: string | null
   client_address: string | null
   total: number
+  status: "confirmed" | "cancelled"
   created_at: string
 }
 

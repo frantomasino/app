@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { FileText, Plus } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 
 export default async function VentasPage() {
   const supabase = await createClient()
@@ -58,7 +59,16 @@ export default async function VentasPage() {
                     </div>
 
                     <div>
-                      <p className="font-medium">Venta #{remito.number}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium">Venta #{remito.number}</p>
+                        {remito.status === "cancelled" ? (
+                          <Badge variant="destructive">Cancelada</Badge>
+                        ) : (
+                          <Badge className="bg-green-100 text-green-900 hover:bg-green-100">
+                            Confirmada
+                          </Badge>
+                        )}
+                      </div>
                       <p className="text-sm text-muted-foreground">{remito.client_name}</p>
                     </div>
                   </div>

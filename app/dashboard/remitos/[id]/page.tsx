@@ -4,13 +4,21 @@ import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { ArrowLeft } from "lucide-react"
 import { RemitoWithItems, Company } from "@/lib/types"
 import { GeneratePdfButton } from "@/components/generate-pdf-button"
 import { PrintRemitoButton } from "@/components/print-remito-button"
 import { DeleteRemitoButton } from "@/components/delete-remito-button"
+import { CancelRemitoButton } from "@/components/cancel-remito-button"
 
 interface VerRemitoPageProps {
   params: Promise<{ id: string }>
@@ -67,7 +75,15 @@ export default async function VerRemitoPage({ params }: VerRemitoPageProps) {
           <div>
             <h1 className="flex items-center gap-2 text-2xl font-bold text-foreground">
               Venta <Badge variant="secondary">#{remito.number}</Badge>
+              {remito.status === "cancelled" ? (
+                <Badge variant="destructive">Cancelada</Badge>
+              ) : (
+                <Badge className="bg-green-100 text-green-900 hover:bg-green-100">
+                  Confirmada
+                </Badge>
+              )}
             </h1>
+
             <p className="text-muted-foreground">
               {new Date(remito.date).toLocaleDateString("es-AR", {
                 weekday: "long",
@@ -80,9 +96,21 @@ export default async function VerRemitoPage({ params }: VerRemitoPageProps) {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <PrintRemitoButton targetId="remito-print-area" fileName={`venta-${remito.number}`} />
+          <PrintRemitoButton
+            targetId="remito-print-area"
+            fileName={`venta-${remito.number}`}
+          />
           <GeneratePdfButton remito={remitoWithItems} company={company as Company} />
-          <DeleteRemitoButton remitoId={remito.id} remitoNumber={remito.number} />
+          <CancelRemitoButton
+            remitoId={remito.id}
+            remitoNumber={remito.number}
+            status={remito.status}
+          />
+          <DeleteRemitoButton
+            remitoId={remito.id}
+            remitoNumber={remito.number}
+            status={remito.status}
+          />
         </div>
       </div>
 
@@ -106,10 +134,18 @@ export default async function VerRemitoPage({ params }: VerRemitoPageProps) {
 
                 <div className="space-y-1 text-sm">
                   <p className="text-lg font-semibold">{company?.name || "Mi Empresa"}</p>
-                  {company?.cuit ? <p className="muted text-muted-foreground">CUIT: {company.cuit}</p> : null}
-                  {company?.address ? <p className="muted text-muted-foreground">{company.address}</p> : null}
-                  {company?.phone ? <p className="muted text-muted-foreground">Tel: {company.phone}</p> : null}
-                  {company?.email ? <p className="muted text-muted-foreground">{company.email}</p> : null}
+                  {company?.cuit ? (
+                    <p className="muted text-muted-foreground">CUIT: {company.cuit}</p>
+                  ) : null}
+                  {company?.address ? (
+                    <p className="muted text-muted-foreground">{company.address}</p>
+                  ) : null}
+                  {company?.phone ? (
+                    <p className="muted text-muted-foreground">Tel: {company.phone}</p>
+                  ) : null}
+                  {company?.email ? (
+                    <p className="muted text-muted-foreground">{company.email}</p>
+                  ) : null}
                 </div>
               </div>
 
@@ -146,7 +182,9 @@ export default async function VerRemitoPage({ params }: VerRemitoPageProps) {
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold">
-                ${Number(remito.total).toLocaleString("es-AR", { minimumFractionDigits: 2 })}
+                ${Number(remito.total).toLocaleString("es-AR", {
+                  minimumFractionDigits: 2,
+                })}
               </p>
             </CardContent>
           </Card>
@@ -173,10 +211,14 @@ export default async function VerRemitoPage({ params }: VerRemitoPageProps) {
                       <TableCell>{item.description}</TableCell>
                       <TableCell className="text-right">{item.quantity}</TableCell>
                       <TableCell className="text-right">
-                        ${Number(item.unit_price).toLocaleString("es-AR", { minimumFractionDigits: 2 })}
+                        ${Number(item.unit_price).toLocaleString("es-AR", {
+                          minimumFractionDigits: 2,
+                        })}
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        ${Number(item.subtotal).toLocaleString("es-AR", { minimumFractionDigits: 2 })}
+                        ${Number(item.subtotal).toLocaleString("es-AR", {
+                          minimumFractionDigits: 2,
+                        })}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -186,7 +228,9 @@ export default async function VerRemitoPage({ params }: VerRemitoPageProps) {
                       Total
                     </TableCell>
                     <TableCell className="text-right font-bold">
-                      ${Number(remito.total).toLocaleString("es-AR", { minimumFractionDigits: 2 })}
+                      ${Number(remito.total).toLocaleString("es-AR", {
+                        minimumFractionDigits: 2,
+                      })}
                     </TableCell>
                   </TableRow>
                 </TableBody>

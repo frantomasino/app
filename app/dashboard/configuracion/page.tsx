@@ -4,6 +4,7 @@ import { CompanyForm } from "@/components/company-form"
 
 export default async function ConfiguracionPage() {
   const supabase = await createClient()
+
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -12,11 +13,15 @@ export default async function ConfiguracionPage() {
     redirect("/auth/login")
   }
 
-  const { data: company } = await supabase
+  const { data: company, error } = await supabase
     .from("companies")
     .select("*")
-    .eq("id", user.id)
+    .eq("user_id", user.id)
     .maybeSingle()
+
+  if (error) {
+    console.error("Error cargando empresa:", error)
+  }
 
   return (
     <div className="space-y-6">

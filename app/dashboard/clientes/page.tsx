@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -16,17 +17,24 @@ import { DeleteClientButton } from "@/components/delete-client-button"
 
 export default async function ClientesPage() {
   const supabase = await createClient()
+
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) return null
+  if (!user) {
+    redirect("/auth/login")
+  }
 
-  const { data: clients } = await supabase
+  const { data: clients, error } = await supabase
     .from("clients")
     .select("*")
     .eq("company_id", user.id)
     .order("name", { ascending: true })
+
+  console.log("user.id:", user.id)
+  console.log("clients:", clients)
+  console.error("clients error:", error)
 
   return (
     <div className="space-y-6">
