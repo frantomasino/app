@@ -27,7 +27,7 @@ export default async function ProductosPage() {
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-bold text-foreground">Inventario</h1>
         <p className="text-muted-foreground">
-          Importá o exportá tu catálogo para manejar tus listas de precios desde la app.
+          Importá o exportá tu catálogo para manejar tus precios y stock desde la app.
         </p>
       </div>
 
@@ -52,10 +52,8 @@ export default async function ProductosPage() {
                   <tr>
                     <th className="px-4 py-3 text-left font-medium">Código</th>
                     <th className="px-4 py-3 text-left font-medium">Producto</th>
-                    <th className="px-4 py-3 text-left font-medium">Unidad</th>
-                    <th className="px-4 py-3 text-right font-medium">Lista 1</th>
-                    <th className="px-4 py-3 text-right font-medium">Lista 2</th>
-                    <th className="px-4 py-3 text-right font-medium">Lista 3</th>
+                    <th className="px-4 py-3 text-right font-medium">Precio</th>
+                    <th className="px-4 py-3 text-right font-medium">Stock</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -63,23 +61,16 @@ export default async function ProductosPage() {
                     <tr key={product.id} className="border-t">
                       <td className="px-4 py-3">{product.code || "-"}</td>
                       <td className="px-4 py-3 font-medium">{product.name}</td>
-                      <td className="px-4 py-3">{product.unit || "-"}</td>
                       <td className="px-4 py-3 text-right">
-                        {Number(product.price_1).toLocaleString("es-AR", {
+                        {Number(product.price).toLocaleString("es-AR", {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
                         })}
                       </td>
                       <td className="px-4 py-3 text-right">
-                        {Number(product.price_2).toLocaleString("es-AR", {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        {Number(product.price_3).toLocaleString("es-AR", {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
+                        {Number(product.stock).toLocaleString("es-AR", {
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 0,
                         })}
                       </td>
                     </tr>

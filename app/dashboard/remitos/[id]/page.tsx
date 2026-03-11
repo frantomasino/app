@@ -10,6 +10,7 @@ import { ArrowLeft } from "lucide-react"
 import { RemitoWithItems, Company } from "@/lib/types"
 import { GeneratePdfButton } from "@/components/generate-pdf-button"
 import { PrintRemitoButton } from "@/components/print-remito-button"
+import { DeleteRemitoButton } from "@/components/delete-remito-button"
 
 interface VerRemitoPageProps {
   params: Promise<{ id: string }>
@@ -78,10 +79,11 @@ export default async function VerRemitoPage({ params }: VerRemitoPageProps) {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <PrintRemitoButton targetId="remito-print-area" fileName={`remito-${remito.number}`} />
-          <GeneratePdfButton remito={remitoWithItems} company={company as Company} />
-        </div>
+       <div className="flex flex-wrap items-center gap-2">
+  <PrintRemitoButton targetId="remito-print-area" fileName={`remito-${remito.number}`} />
+  <GeneratePdfButton remito={remitoWithItems} company={company as Company} />
+  <DeleteRemitoButton remitoId={remito.id} remitoNumber={remito.number} />
+</div>
       </div>
 
       <div id="remito-print-area" className="space-y-6">

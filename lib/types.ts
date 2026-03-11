@@ -46,16 +46,13 @@ export interface RemitoWithItems extends Remito {
   items: RemitoItem[]
 }
 
-
 export interface Product {
   id: string
   company_id: string
   code: string | null
   name: string
-  unit: string | null
-  price_1: number
-  price_2: number
-  price_3: number
+  price: number
+  stock: number
   is_active: boolean
   created_at: string
 }

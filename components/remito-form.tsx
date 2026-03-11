@@ -13,6 +13,7 @@ import { Plus, Trash2 } from "lucide-react"
 
 interface RemitoItem {
   id: string
+  product_id: string | null
   description: string
   quantity: number
   unit_price: number
@@ -44,7 +45,7 @@ export function RemitoForm({
   const [clientAddress, setClientAddress] = useState("")
   const [date, setDate] = useState(new Date().toISOString().split("T")[0])
   const [items, setItems] = useState<RemitoItem[]>([
-    { id: crypto.randomUUID(), description: "", quantity: 1, unit_price: 0 },
+    { id: crypto.randomUUID(), product_id: null, description: "", quantity: 1, unit_price: 0 },
   ])
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -66,13 +67,17 @@ export function RemitoForm({
       products.map((product) => ({
         id: product.id,
         name: product.name,
-        unitPrice: Number(product.price_1 || 0),
+        unitPrice: Number(product.price || 0),
+        stock: Number(product.stock || 0),
       })),
     [products],
   )
 
   const addItem = () => {
-    setItems([...items, { id: crypto.randomUUID(), description: "", quantity: 1, unit_price: 0 }])
+    setItems([
+      ...items,
+      { id: crypto.randomUUID(), product_id: null, description: "", quantity: 1, unit_price: 0 },
+    ])
   }
 
   const removeItem = (id: string) => {
@@ -81,7 +86,7 @@ export function RemitoForm({
     }
   }
 
-  const updateItem = (id: string, field: keyof RemitoItem, value: string | number) => {
+  const updateItem = (id: string, field: keyof RemitoItem, value: string | number | null) => {
     setItems(
       items.map((item) =>
         item.id === id
@@ -124,11 +129,18 @@ export function RemitoForm({
 
         return {
           ...item,
+          product_id: matchedProduct ? matchedProduct.id : null,
           description: value,
           unit_price: matchedProduct ? matchedProduct.unitPrice : item.unit_price,
         }
       }),
     )
+  }
+
+  const getItemStock = (productId: string | null) => {
+    if (!productId) return null
+    const product = productOptions.find((item) => item.id === productId)
+    return product ? product.stock : null
   }
 
   const calculateTotal = () => {
@@ -141,18 +153,78 @@ export function RemitoForm({
     setLoading(true)
 
     if (!clientName.trim()) {
-      setError("El nombre del cliente es requerido")
+      setError("El nombre del cliente es obligatorio.")
       setLoading(false)
       return
     }
 
     if (items.some((item) => !item.description.trim())) {
-      setError("Todos los items deben tener una descripción")
+      setError("Todos los items deben tener un producto.")
+      setLoading(false)
+      return
+    }
+
+    if (items.some((item) => !item.product_id)) {
+      setError("Todos los items deben existir en el inventario.")
+      setLoading(false)
+      return
+    }
+
+    if (items.some((item) => item.quantity <= 0)) {
+      setError("Todas las cantidades deben ser mayores a 0.")
       setLoading(false)
       return
     }
 
     const supabase = createClient()
+
+    const productIds = items
+      .map((item) => item.product_id)
+      .filter((value): value is string => Boolean(value))
+
+    if (productIds.length > 0) {
+      const { data: currentProducts, error: productsError } = await supabase
+        .from("products")
+        .select("id, name, stock")
+        .eq("company_id", userId)
+        .in("id", productIds)
+
+      if (productsError) {
+        setError("No se pudo validar el stock disponible.")
+        setLoading(false)
+        return
+      }
+
+      const stockMap = new Map(
+        (currentProducts || []).map((product) => [
+          product.id,
+          {
+            name: product.name,
+            stock: Number(product.stock || 0),
+          },
+        ]),
+      )
+
+      for (const item of items) {
+        if (!item.product_id) continue
+
+        const product = stockMap.get(item.product_id)
+
+        if (!product) {
+          setError(`No se encontró el producto "${item.description}" en el inventario.`)
+          setLoading(false)
+          return
+        }
+
+        if (item.quantity > product.stock) {
+          setError(
+            `No hay stock suficiente para "${product.name}". Disponible: ${product.stock}.`,
+          )
+          setLoading(false)
+          return
+        }
+      }
+    }
 
     const { data: remito, error: remitoError } = await supabase
       .from("remitos")
@@ -178,6 +250,7 @@ export function RemitoForm({
     const { error: itemsError } = await supabase.from("remito_items").insert(
       items.map((item) => ({
         remito_id: remito.id,
+        product_id: item.product_id,
         description: item.description,
         quantity: item.quantity,
         unit_price: item.unit_price,
@@ -188,6 +261,27 @@ export function RemitoForm({
       setError(itemsError.message)
       setLoading(false)
       return
+    }
+
+    for (const item of items) {
+      if (!item.product_id) continue
+
+      const matchedProduct = products.find((product) => product.id === item.product_id)
+      if (!matchedProduct) continue
+
+      const newStock = Number(matchedProduct.stock || 0) - item.quantity
+
+      const { error: stockError } = await supabase
+        .from("products")
+        .update({ stock: newStock })
+        .eq("id", item.product_id)
+        .eq("company_id", userId)
+
+      if (stockError) {
+        setError("La venta se guardó, pero no se pudo actualizar el stock.")
+        setLoading(false)
+        return
+      }
     }
 
     router.push(`/dashboard/remitos/${remito.id}`)
@@ -201,7 +295,7 @@ export function RemitoForm({
           <CardHeader>
             <CardTitle>Datos del cliente</CardTitle>
             <CardDescription>
-              Buscá un cliente cargado escribiendo su nombre o completá los datos manualmente
+              Buscá un cliente cargado escribiendo su nombre o completá los datos manualmente.
             </CardDescription>
           </CardHeader>
 
@@ -269,9 +363,9 @@ export function RemitoForm({
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Items del remito</CardTitle>
+                <CardTitle>Items de la venta</CardTitle>
                 <CardDescription>
-                  Agregá los productos o servicios. Si el producto existe en tu catálogo, se sugerirá mientras escribís.
+                  Agregá los productos. Si el producto existe en tu inventario, se sugerirá mientras escribís.
                 </CardDescription>
               </div>
 
@@ -285,92 +379,106 @@ export function RemitoForm({
           <CardContent>
             <div className="space-y-4">
               <div className="hidden text-sm font-medium text-muted-foreground sm:grid sm:grid-cols-12 sm:gap-4">
-                <div className="col-span-5">Descripción</div>
+                <div className="col-span-5">Producto</div>
                 <div className="col-span-2">Cantidad</div>
                 <div className="col-span-2">Precio unit.</div>
                 <div className="col-span-2 text-right">Subtotal</div>
                 <div className="col-span-1"></div>
               </div>
 
-              {items.map((item, index) => (
-                <div
-                  key={item.id}
-                  className="flex flex-col gap-2 rounded-lg border p-3 sm:grid sm:grid-cols-12 sm:items-center sm:gap-4 sm:rounded-none sm:border-0 sm:p-0"
-                >
-                  <div className="sm:col-span-5">
-                    <label className="text-sm text-muted-foreground sm:hidden">Descripción</label>
-                    <Input
-                      list={`products-suggestions-${index}`}
-                      placeholder="Descripción del item"
-                      value={item.description}
-                      onChange={(e) => handleDescriptionChange(item.id, e.target.value)}
-                      required
-                    />
-                    <datalist id={`products-suggestions-${index}`}>
-                      {productOptions.map((product) => (
-                        <option key={product.id} value={product.name} />
-                      ))}
-                    </datalist>
-                  </div>
+              {items.map((item, index) => {
+                const availableStock = getItemStock(item.product_id)
 
-                  <div className="grid grid-cols-2 gap-2 sm:col-span-2 sm:grid-cols-1">
-                    <div>
-                      <label className="text-sm text-muted-foreground sm:hidden">Cantidad</label>
+                return (
+                  <div
+                    key={item.id}
+                    className="flex flex-col gap-2 rounded-lg border p-3 sm:grid sm:grid-cols-12 sm:items-center sm:gap-4 sm:rounded-none sm:border-0 sm:p-0"
+                  >
+                    <div className="sm:col-span-5">
+                      <label className="text-sm text-muted-foreground sm:hidden">Producto</label>
                       <Input
-                        type="number"
-                        min="0.01"
-                        step="0.01"
-                        placeholder="Cant."
-                        value={item.quantity || ""}
-                        onChange={(e) =>
-                          updateItem(item.id, "quantity", parseFloat(e.target.value) || 0)
-                        }
+                        list={`products-suggestions-${index}`}
+                        placeholder="Producto"
+                        value={item.description}
+                        onChange={(e) => handleDescriptionChange(item.id, e.target.value)}
                         required
                       />
+                      <datalist id={`products-suggestions-${index}`}>
+                        {productOptions.map((product) => (
+                          <option key={product.id} value={product.name} />
+                        ))}
+                      </datalist>
+
+                      {item.product_id ? (
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Stock disponible: {availableStock ?? 0}
+                        </p>
+                      ) : item.description.trim() ? (
+                        <p className="mt-1 text-xs text-destructive">
+                          Este producto no existe en el inventario.
+                        </p>
+                      ) : null}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 sm:col-span-2 sm:grid-cols-1">
+                      <div>
+                        <label className="text-sm text-muted-foreground sm:hidden">Cantidad</label>
+                        <Input
+                          type="number"
+                          min="1"
+                          step="1"
+                          placeholder="Cant."
+                          value={item.quantity || ""}
+                          onChange={(e) =>
+                            updateItem(item.id, "quantity", parseInt(e.target.value, 10) || 0)
+                          }
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 sm:col-span-2 sm:grid-cols-1">
+                      <div>
+                        <label className="text-sm text-muted-foreground sm:hidden">Precio unit.</label>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          placeholder="Precio"
+                          value={item.unit_price || ""}
+                          onChange={(e) =>
+                            updateItem(item.id, "unit_price", parseFloat(e.target.value) || 0)
+                          }
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="sm:col-span-2 text-right">
+                      <label className="text-sm text-muted-foreground sm:hidden">Subtotal</label>
+                      <p className="font-medium">
+                        $
+                        {(item.quantity * item.unit_price).toLocaleString("es-AR", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </p>
+                    </div>
+
+                    <div className="flex justify-end sm:col-span-1">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeItem(item.id)}
+                        disabled={items.length === 1}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
-
-                  <div className="grid grid-cols-2 gap-2 sm:col-span-2 sm:grid-cols-1">
-                    <div>
-                      <label className="text-sm text-muted-foreground sm:hidden">Precio unit.</label>
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        placeholder="Precio"
-                        value={item.unit_price || ""}
-                        onChange={(e) =>
-                          updateItem(item.id, "unit_price", parseFloat(e.target.value) || 0)
-                        }
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="sm:col-span-2 text-right">
-                    <label className="text-sm text-muted-foreground sm:hidden">Subtotal</label>
-                    <p className="font-medium">
-                      $
-                      {(item.quantity * item.unit_price).toLocaleString("es-AR", {
-                        minimumFractionDigits: 2,
-                      })}
-                    </p>
-                  </div>
-
-                  <div className="flex justify-end sm:col-span-1">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeItem(item.id)}
-                      disabled={items.length === 1}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
 
               <div className="flex justify-end border-t pt-4">
                 <div className="text-right">
@@ -391,7 +499,7 @@ export function RemitoForm({
           <CardFooter className="flex gap-2">
             <Button type="submit" disabled={loading}>
               {loading ? <Spinner className="mr-2" /> : null}
-              Crear Remito #{nextNumber}
+              Crear venta #{nextNumber}
             </Button>
 
             <Button type="button" variant="outline" onClick={() => router.back()}>

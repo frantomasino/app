@@ -25,16 +25,14 @@ interface ProductsImportExportProps {
   showEmptyStateTrigger?: boolean
 }
 
-const EXPORT_HEADERS = ["codigo", "nombre", "unidad", "precio_1", "precio_2", "precio_3"]
+const EXPORT_HEADERS = ["codigo", "nombre", "precio", "stock"]
 
 function formatRows(products: Product[]) {
   return products.map((product) => ({
     codigo: product.code || "",
     nombre: product.name,
-    unidad: product.unit || "",
-    precio_1: Number(product.price_1),
-    precio_2: Number(product.price_2),
-    precio_3: Number(product.price_3),
+    precio: Number(product.price),
+    stock: Number(product.stock),
   }))
 }
 
@@ -108,10 +106,8 @@ export function ProductsImportExport({
       PRODUCT_TEMPLATE_ROWS.map((row) => ({
         codigo: row.code || "",
         nombre: row.name,
-        unidad: row.unit || "",
-        precio_1: row.price_1,
-        precio_2: row.price_2,
-        precio_3: row.price_3,
+        precio: row.price,
+        stock: row.stock,
       })),
       "plantilla-productos.xlsx",
       "xlsx",
@@ -183,10 +179,8 @@ export function ProductsImportExport({
         company_id: userId,
         code: row.code,
         name: row.name,
-        unit: row.unit,
-        price_1: row.price_1,
-        price_2: row.price_2,
-        price_3: row.price_3,
+        price: row.price,
+        stock: row.stock,
       }))
 
       const { error: insertError } = await supabase.from("products").insert(rowsToInsert)
@@ -270,32 +264,28 @@ export function ProductsImportExport({
         <div className="rounded-lg border bg-muted/20 p-4 text-sm text-muted-foreground">
           Formatos aceptados:
           <br />
-          <strong>codigo, nombre, unidad, precio_1, precio_2, precio_3</strong>
-          <br />
-          o también:
-          <br />
-          <strong>descripcion, precio</strong>
+          <strong>codigo, nombre, precio, stock</strong>
         </div>
 
         {showEmptyStateTrigger && products.length === 0 ? (
-  <button
-    type="button"
-    onClick={() => inputRef.current?.click()}
-    disabled={loading}
-    className="flex w-full flex-col items-center justify-center gap-3 rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground transition hover:bg-muted/40 disabled:cursor-not-allowed disabled:opacity-60"
-  >
-    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-      {loading ? <Spinner className="h-5 w-5" /> : <Upload className="h-5 w-5" />}
-    </div>
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            disabled={loading}
+            className="flex w-full flex-col items-center justify-center gap-3 rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground transition hover:bg-muted/40 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+              {loading ? <Spinner className="h-5 w-5" /> : <Upload className="h-5 w-5" />}
+            </div>
 
-    <div className="space-y-1">
-      <p className="font-medium text-foreground">Todavía no cargaste productos</p>
-      <p className="text-sm text-muted-foreground">
-        Tocá acá para importar un archivo CSV o Excel.
-      </p>
-    </div>
-  </button>
-) : null}
+            <div className="space-y-1">
+              <p className="font-medium text-foreground">Todavía no cargaste productos</p>
+              <p className="text-sm text-muted-foreground">
+                Tocá acá para importar un archivo CSV o Excel.
+              </p>
+            </div>
+          </button>
+        ) : null}
 
         {message ? (
           <Alert>
