@@ -66,7 +66,7 @@ export default async function VerRemitoPage({ params }: VerRemitoPageProps) {
 
           <div>
             <h1 className="flex items-center gap-2 text-2xl font-bold text-foreground">
-              Remito <Badge variant="secondary">#{remito.number}</Badge>
+              Venta <Badge variant="secondary">#{remito.number}</Badge>
             </h1>
             <p className="text-muted-foreground">
               {new Date(remito.date).toLocaleDateString("es-AR", {
@@ -79,11 +79,11 @@ export default async function VerRemitoPage({ params }: VerRemitoPageProps) {
           </div>
         </div>
 
-       <div className="flex flex-wrap items-center gap-2">
-  <PrintRemitoButton targetId="remito-print-area" fileName={`remito-${remito.number}`} />
-  <GeneratePdfButton remito={remitoWithItems} company={company as Company} />
-  <DeleteRemitoButton remitoId={remito.id} remitoNumber={remito.number} />
-</div>
+        <div className="flex flex-wrap items-center gap-2">
+          <PrintRemitoButton targetId="remito-print-area" fileName={`venta-${remito.number}`} />
+          <GeneratePdfButton remito={remitoWithItems} company={company as Company} />
+          <DeleteRemitoButton remitoId={remito.id} remitoNumber={remito.number} />
+        </div>
       </div>
 
       <div id="remito-print-area" className="space-y-6">
@@ -114,7 +114,7 @@ export default async function VerRemitoPage({ params }: VerRemitoPageProps) {
               </div>
 
               <div className="print-remito-box rounded-lg border px-4 py-3 text-sm">
-                <p className="muted text-muted-foreground">Remito</p>
+                <p className="muted text-muted-foreground">Venta</p>
                 <p className="text-xl font-bold">#{remito.number}</p>
                 <p className="muted text-muted-foreground">
                   {new Date(remito.date).toLocaleDateString("es-AR")}
@@ -154,14 +154,14 @@ export default async function VerRemitoPage({ params }: VerRemitoPageProps) {
 
         <Card className="print-card">
           <CardHeader>
-            <CardTitle>Detalle</CardTitle>
+            <CardTitle>Detalle de la venta</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Descripción</TableHead>
+                    <TableHead>Producto</TableHead>
                     <TableHead className="text-right">Cantidad</TableHead>
                     <TableHead className="text-right">Precio unit.</TableHead>
                     <TableHead className="text-right">Subtotal</TableHead>
