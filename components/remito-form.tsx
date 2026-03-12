@@ -6,7 +6,6 @@ import { createClient } from "@/lib/supabase/client"
 import { Client, Product } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { FieldGroup, Field, FieldLabel } from "@/components/ui/field"
 import { Spinner } from "@/components/ui/spinner"
 import { Plus, Trash2 } from "lucide-react"
@@ -159,13 +158,13 @@ export function RemitoForm({
     }
 
     if (items.some((item) => !item.description.trim())) {
-      setError("Todos los items deben tener un producto.")
+      setError("Todos los ítems deben tener un producto.")
       setLoading(false)
       return
     }
 
     if (items.some((item) => !item.product_id)) {
-      setError("Todos los items deben existir en el inventario.")
+      setError("Todos los ítems deben existir en el inventario.")
       setLoading(false)
       return
     }
@@ -278,7 +277,7 @@ export function RemitoForm({
         .eq("company_id", userId)
 
       if (stockError) {
-        setError("La venta se guardó, pero no se pudo actualizar el stock.")
+        setError("La operación se guardó, pero no se pudo actualizar el stock.")
         setLoading(false)
         return
       }
@@ -289,224 +288,210 @@ export function RemitoForm({
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Datos del cliente</CardTitle>
-            <CardDescription>
-              Buscá un cliente cargado escribiendo su nombre o completá los datos manualmente.
-            </CardDescription>
-          </CardHeader>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <section className="space-y-4">
+        <div className="border-b border-border/60 pb-2">
+          <p className="text-sm font-semibold text-foreground">Cliente</p>
+        </div>
 
-          <CardContent>
-            <FieldGroup>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field>
-                  <FieldLabel htmlFor="clientName">Nombre *</FieldLabel>
+        <FieldGroup>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Field>
+              <FieldLabel htmlFor="clientName">Nombre *</FieldLabel>
+              <Input
+                id="clientName"
+                list="clients-suggestions"
+                type="text"
+                placeholder="Buscá o escribí el nombre del cliente"
+                value={clientName}
+                onChange={(e) => handleClientNameChange(e.target.value)}
+                required
+              />
+              <datalist id="clients-suggestions">
+                {clientOptions.map((client) => (
+                  <option key={client.id} value={client.name} />
+                ))}
+              </datalist>
+            </Field>
+
+            <Field>
+              <FieldLabel htmlFor="date">Fecha *</FieldLabel>
+              <Input
+                id="date"
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                required
+              />
+            </Field>
+
+            <Field>
+              <FieldLabel htmlFor="clientCuit">CUIT</FieldLabel>
+              <Input
+                id="clientCuit"
+                type="text"
+                placeholder="XX-XXXXXXXX-X"
+                value={clientCuit}
+                onChange={(e) => setClientCuit(e.target.value)}
+              />
+            </Field>
+
+            <Field>
+              <FieldLabel htmlFor="clientAddress">Dirección</FieldLabel>
+              <Input
+                id="clientAddress"
+                type="text"
+                placeholder="Dirección del cliente"
+                value={clientAddress}
+                onChange={(e) => setClientAddress(e.target.value)}
+              />
+            </Field>
+          </div>
+        </FieldGroup>
+      </section>
+
+      <section className="space-y-4">
+        <div className="flex items-center justify-between gap-3 border-b border-border/60 pb-2">
+          <p className="text-sm font-semibold text-foreground">Productos</p>
+
+          <Button type="button" variant="outline" size="sm" onClick={addItem} className="rounded-md">
+            <Plus className="mr-1 h-4 w-4" />
+            Agregar
+          </Button>
+        </div>
+
+        <div className="space-y-3">
+          <div className="hidden border-b border-border/60 pb-2 text-sm font-medium text-muted-foreground sm:grid sm:grid-cols-12 sm:gap-4">
+            <div className="col-span-5">Producto</div>
+            <div className="col-span-2">Cantidad</div>
+            <div className="col-span-2">Precio unit.</div>
+            <div className="col-span-2 text-right">Subtotal</div>
+            <div className="col-span-1" />
+          </div>
+
+          {items.map((item, index) => {
+            const availableStock = getItemStock(item.product_id)
+
+            return (
+              <div
+                key={item.id}
+                className="border-b border-border/60 pb-3 sm:grid sm:grid-cols-12 sm:items-start sm:gap-4"
+              >
+                <div className="space-y-3 sm:col-span-5 sm:space-y-0">
+                  <label className="text-sm text-muted-foreground sm:hidden">Producto</label>
                   <Input
-                    id="clientName"
-                    list="clients-suggestions"
-                    type="text"
-                    placeholder="Buscá o escribí el nombre del cliente"
-                    value={clientName}
-                    onChange={(e) => handleClientNameChange(e.target.value)}
+                    list={`products-suggestions-${index}`}
+                    placeholder="Producto"
+                    value={item.description}
+                    onChange={(e) => handleDescriptionChange(item.id, e.target.value)}
                     required
                   />
-                  <datalist id="clients-suggestions">
-                    {clientOptions.map((client) => (
-                      <option key={client.id} value={client.name} />
+                  <datalist id={`products-suggestions-${index}`}>
+                    {productOptions.map((product) => (
+                      <option key={product.id} value={product.name} />
                     ))}
                   </datalist>
-                </Field>
 
-                <Field>
-                  <FieldLabel htmlFor="clientCuit">CUIT</FieldLabel>
-                  <Input
-                    id="clientCuit"
-                    type="text"
-                    placeholder="XX-XXXXXXXX-X"
-                    value={clientCuit}
-                    onChange={(e) => setClientCuit(e.target.value)}
-                  />
-                </Field>
-              </div>
+                  {item.product_id ? (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Stock disponible: {availableStock ?? 0}
+                    </p>
+                  ) : item.description.trim() ? (
+                    <p className="mt-1 text-xs text-destructive">
+                      Este producto no existe en el inventario.
+                    </p>
+                  ) : null}
+                </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field>
-                  <FieldLabel htmlFor="clientAddress">Dirección</FieldLabel>
-                  <Input
-                    id="clientAddress"
-                    type="text"
-                    placeholder="Dirección del cliente"
-                    value={clientAddress}
-                    onChange={(e) => setClientAddress(e.target.value)}
-                  />
-                </Field>
-
-                <Field>
-                  <FieldLabel htmlFor="date">Fecha *</FieldLabel>
-                  <Input
-                    id="date"
-                    type="date"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    required
-                  />
-                </Field>
-              </div>
-            </FieldGroup>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Items de la venta</CardTitle>
-                <CardDescription>
-                  Agregá los productos. Si el producto existe en tu inventario, se sugerirá mientras escribís.
-                </CardDescription>
-              </div>
-
-              <Button type="button" variant="outline" size="sm" onClick={addItem}>
-                <Plus className="mr-1 h-4 w-4" />
-                Agregar item
-              </Button>
-            </div>
-          </CardHeader>
-
-          <CardContent>
-            <div className="space-y-4">
-              <div className="hidden text-sm font-medium text-muted-foreground sm:grid sm:grid-cols-12 sm:gap-4">
-                <div className="col-span-5">Producto</div>
-                <div className="col-span-2">Cantidad</div>
-                <div className="col-span-2">Precio unit.</div>
-                <div className="col-span-2 text-right">Subtotal</div>
-                <div className="col-span-1"></div>
-              </div>
-
-              {items.map((item, index) => {
-                const availableStock = getItemStock(item.product_id)
-
-                return (
-                  <div
-                    key={item.id}
-                    className="flex flex-col gap-2 rounded-lg border p-3 sm:grid sm:grid-cols-12 sm:items-center sm:gap-4 sm:rounded-none sm:border-0 sm:p-0"
-                  >
-                    <div className="sm:col-span-5">
-                      <label className="text-sm text-muted-foreground sm:hidden">Producto</label>
-                      <Input
-                        list={`products-suggestions-${index}`}
-                        placeholder="Producto"
-                        value={item.description}
-                        onChange={(e) => handleDescriptionChange(item.id, e.target.value)}
-                        required
-                      />
-                      <datalist id={`products-suggestions-${index}`}>
-                        {productOptions.map((product) => (
-                          <option key={product.id} value={product.name} />
-                        ))}
-                      </datalist>
-
-                      {item.product_id ? (
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          Stock disponible: {availableStock ?? 0}
-                        </p>
-                      ) : item.description.trim() ? (
-                        <p className="mt-1 text-xs text-destructive">
-                          Este producto no existe en el inventario.
-                        </p>
-                      ) : null}
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2 sm:col-span-2 sm:grid-cols-1">
-                      <div>
-                        <label className="text-sm text-muted-foreground sm:hidden">Cantidad</label>
-                        <Input
-                          type="number"
-                          min="1"
-                          step="1"
-                          placeholder="Cant."
-                          value={item.quantity || ""}
-                          onChange={(e) =>
-                            updateItem(item.id, "quantity", parseInt(e.target.value, 10) || 0)
-                          }
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2 sm:col-span-2 sm:grid-cols-1">
-                      <div>
-                        <label className="text-sm text-muted-foreground sm:hidden">Precio unit.</label>
-                        <Input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          placeholder="Precio"
-                          value={item.unit_price || ""}
-                          onChange={(e) =>
-                            updateItem(item.id, "unit_price", parseFloat(e.target.value) || 0)
-                          }
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="sm:col-span-2 text-right">
-                      <label className="text-sm text-muted-foreground sm:hidden">Subtotal</label>
-                      <p className="font-medium">
-                        $
-                        {(item.quantity * item.unit_price).toLocaleString("es-AR", {
-                          minimumFractionDigits: 2,
-                        })}
-                      </p>
-                    </div>
-
-                    <div className="flex justify-end sm:col-span-1">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => removeItem(item.id)}
-                        disabled={items.length === 1}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                <div className="mt-3 grid grid-cols-2 gap-3 sm:col-span-2 sm:mt-0 sm:block">
+                  <div>
+                    <label className="text-sm text-muted-foreground sm:hidden">Cantidad</label>
+                    <Input
+                      type="number"
+                      min="1"
+                      step="1"
+                      placeholder="Cant."
+                      value={item.quantity || ""}
+                      onChange={(e) =>
+                        updateItem(item.id, "quantity", parseInt(e.target.value, 10) || 0)
+                      }
+                      required
+                    />
                   </div>
-                )
-              })}
+                </div>
 
-              <div className="flex justify-end border-t pt-4">
-                <div className="text-right">
-                  <p className="text-sm text-muted-foreground">Total</p>
-                  <p className="text-2xl font-bold">
+                <div className="mt-3 grid grid-cols-2 gap-3 sm:col-span-2 sm:mt-0 sm:block">
+                  <div>
+                    <label className="text-sm text-muted-foreground sm:hidden">Precio unit.</label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder="Precio"
+                      value={item.unit_price || ""}
+                      onChange={(e) =>
+                        updateItem(item.id, "unit_price", parseFloat(e.target.value) || 0)
+                      }
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-3 sm:col-span-2 sm:mt-0 sm:text-right">
+                  <label className="text-sm text-muted-foreground sm:hidden">Subtotal</label>
+                  <p className="pt-2 font-medium text-foreground sm:pt-2.5">
                     $
-                    {calculateTotal().toLocaleString("es-AR", {
+                    {(item.quantity * item.unit_price).toLocaleString("es-AR", {
                       minimumFractionDigits: 2,
                     })}
                   </p>
                 </div>
+
+                <div className="mt-3 flex justify-end sm:col-span-1 sm:mt-0">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => removeItem(item.id)}
+                    disabled={items.length === 1}
+                    className="rounded-md text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
-            </div>
+            )
+          })}
+        </div>
 
-            {error ? <p className="mt-4 text-sm text-destructive">{error}</p> : null}
-          </CardContent>
+        <div className="flex justify-end border-t border-border/60 pt-4">
+          <div className="text-right">
+            <p className="text-sm text-muted-foreground">Total</p>
+            <p className="text-2xl font-semibold tracking-tight text-foreground">
+              $
+              {calculateTotal().toLocaleString("es-AR", {
+                minimumFractionDigits: 2,
+              })}
+            </p>
+          </div>
+        </div>
+      </section>
 
-          <CardFooter className="flex gap-2">
-            <Button type="submit" disabled={loading}>
-              {loading ? <Spinner className="mr-2" /> : null}
-              Crear venta #{nextNumber}
-            </Button>
+      {error ? (
+        <div className="border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+          {error}
+        </div>
+      ) : null}
 
-            <Button type="button" variant="outline" onClick={() => router.back()}>
-              Cancelar
-            </Button>
-          </CardFooter>
-        </Card>
+      <div className="flex flex-col-reverse gap-2 border-t border-border/60 pt-4 sm:flex-row sm:justify-end">
+        <Button type="button" variant="outline" onClick={() => router.back()} size="sm" className="rounded-md">
+          Cancelar
+        </Button>
+
+        <Button type="submit" size="sm" disabled={loading} className="rounded-md">
+          {loading ? <Spinner className="mr-2" /> : null}
+          Guardar registro #{nextNumber}
+        </Button>
       </div>
     </form>
   )

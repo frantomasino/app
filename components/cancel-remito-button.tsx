@@ -108,7 +108,7 @@ export function CancelRemitoButton({
 
   if (status === "cancelled") {
     return (
-      <Button variant="outline" disabled>
+      <Button variant="outline" size="sm" disabled className="rounded-md">
         <Ban className="mr-2 h-4 w-4" />
         Venta cancelada
       </Button>
@@ -118,7 +118,7 @@ export function CancelRemitoButton({
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button variant="outline">
+        <Button variant="outline" size="sm" className="rounded-md">
           <Ban className="mr-2 h-4 w-4" />
           Cancelar venta
         </Button>

@@ -1,18 +1,9 @@
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/components/ui/empty"
-import { Plus, Users, Pencil } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Plus, Users, Pencil, ArrowRight } from "lucide-react"
 import { DeleteClientButton } from "@/components/delete-client-button"
 
 export default async function ClientesPage() {
@@ -32,111 +23,229 @@ export default async function ClientesPage() {
     .eq("company_id", user.id)
     .order("name", { ascending: true })
 
-  console.log("user.id:", user.id)
-  console.log("clients:", clients)
-  console.error("clients error:", error)
+  if (error) {
+    console.error("Error cargando contactos:", error)
+  }
+
+  const clientsList = clients ?? []
+  const totalContacts = clientsList.length
+  const contactsWithEmail = clientsList.filter((client) => !!client.email).length
+  const contactsWithPhone = clientsList.filter((client) => !!client.phone).length
+  const contactsWithCuit = clientsList.filter((client) => !!client.cuit).length
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Clientes</h1>
-          <p className="text-muted-foreground">Gestioná tus clientes</p>
+    <div className="space-y-4">
+      <section className="border border-border/60 bg-card">
+        <div className="flex flex-col gap-4 border-b border-border/60 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h1 className="text-[1.65rem] font-semibold tracking-[-0.025em] text-foreground">
+              Contactos
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Consultá y administrá tu base de contactos.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Button asChild variant="outline" size="sm" className="rounded-md">
+              <Link href="/dashboard/remitos">
+                Ver ventas
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+
+            <Button asChild size="sm" className="rounded-md">
+              <Link href="/dashboard/clientes/nuevo">
+                <Plus className="mr-2 h-4 w-4" />
+                Nuevo contacto
+              </Link>
+            </Button>
+          </div>
         </div>
 
-        <Button asChild>
-          <Link href="/dashboard/clientes/nuevo">
-            <Plus className="mr-2 h-4 w-4" />
-            Nuevo Cliente
-          </Link>
-        </Button>
-      </div>
+        <div className="grid gap-0 lg:grid-cols-4">
+          <div className="border-b border-border/60 px-5 py-4 lg:border-b-0 lg:border-r">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+              Total
+            </p>
+            <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
+              {totalContacts}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Contactos registrados
+            </p>
+          </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de clientes</CardTitle>
-          <CardDescription>Todos los clientes de tu empresa</CardDescription>
-        </CardHeader>
+          <div className="border-b border-border/60 px-5 py-4 lg:border-b-0 lg:border-r">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+              Con email
+            </p>
+            <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
+              {contactsWithEmail}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Correo disponible
+            </p>
+          </div>
 
-        <CardContent>
-          {clients && clients.length > 0 ? (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nombre</TableHead>
-                    <TableHead className="hidden sm:table-cell">CUIT</TableHead>
-                    <TableHead className="hidden md:table-cell">Teléfono</TableHead>
-                    <TableHead className="hidden lg:table-cell">Email</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
+          <div className="border-b border-border/60 px-5 py-4 lg:border-b-0 lg:border-r">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+              Con teléfono
+            </p>
+            <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
+              {contactsWithPhone}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Contacto telefónico
+            </p>
+          </div>
 
-                <TableBody>
-                  {clients.map((client) => (
-                    <TableRow key={client.id}>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">{client.name}</p>
-                          <p className="text-sm text-muted-foreground sm:hidden">
+          <div className="px-5 py-4">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+              Con CUIT
+            </p>
+            <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
+              {contactsWithCuit}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Identificación fiscal
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="border border-border/60 bg-card">
+        <div className="flex flex-col gap-3 border-b border-border/60 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-foreground">Listado</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Información comercial y de contacto de cada registro.
+            </p>
+          </div>
+
+          {totalContacts > 0 ? (
+            <Button asChild variant="outline" size="sm" className="rounded-md">
+              <Link href="/dashboard/clientes/nuevo">
+                <Plus className="mr-2 h-4 w-4" />
+                Agregar contacto
+              </Link>
+            </Button>
+          ) : null}
+        </div>
+
+        {clientsList.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/20">
+                <tr className="border-b border-border/60">
+                  <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                    Contacto
+                  </th>
+                  <th className="hidden px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground sm:table-cell">
+                    CUIT
+                  </th>
+                  <th className="hidden px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground md:table-cell">
+                    Teléfono
+                  </th>
+                  <th className="hidden px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground lg:table-cell">
+                    Email
+                  </th>
+                  <th className="px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                    Acciones
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {clientsList.map((client) => (
+                  <tr
+                    key={client.id}
+                    className="border-b border-border/60 transition-colors hover:bg-muted/20"
+                  >
+                    <td className="min-w-[240px] px-5 py-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold text-foreground">{client.name}</p>
+
+                          {client.cuit ? (
+                            <Badge className="border-0 bg-primary/10 text-primary hover:bg-primary/10">
+                              Registrado
+                            </Badge>
+                          ) : null}
+                        </div>
+
+                        <div className="space-y-1 sm:hidden">
+                          <p className="text-sm text-muted-foreground">
                             {client.cuit || "Sin CUIT"}
                           </p>
+
+                          {client.phone ? (
+                            <p className="text-sm text-muted-foreground">{client.phone}</p>
+                          ) : null}
+
+                          {client.email ? (
+                            <p className="truncate text-sm text-muted-foreground">
+                              {client.email}
+                            </p>
+                          ) : null}
                         </div>
-                      </TableCell>
+                      </div>
+                    </td>
 
-                      <TableCell className="hidden sm:table-cell">
-                        {client.cuit || "-"}
-                      </TableCell>
+                    <td className="hidden px-5 py-4 text-foreground sm:table-cell">
+                      {client.cuit || "-"}
+                    </td>
 
-                      <TableCell className="hidden md:table-cell">
-                        {client.phone || "-"}
-                      </TableCell>
+                    <td className="hidden px-5 py-4 text-foreground md:table-cell">
+                      {client.phone || "-"}
+                    </td>
 
-                      <TableCell className="hidden lg:table-cell">
-                        {client.email || "-"}
-                      </TableCell>
+                    <td className="hidden max-w-[260px] px-5 py-4 text-foreground lg:table-cell">
+                      <span className="block truncate">{client.email || "-"}</span>
+                    </td>
 
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button asChild variant="ghost" size="icon">
-                            <Link href={`/dashboard/clientes/${client.id}/editar`}>
-                              <Pencil className="h-4 w-4" />
-                              <span className="sr-only">Editar</span>
-                            </Link>
-                          </Button>
+                    <td className="px-5 py-4 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <Button asChild variant="ghost" size="icon-sm" className="rounded-md">
+                          <Link href={`/dashboard/clientes/${client.id}/editar`}>
+                            <Pencil className="h-4 w-4" />
+                            <span className="sr-only">Editar</span>
+                          </Link>
+                        </Button>
 
-                          <DeleteClientButton clientId={client.id} clientName={client.name} />
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                        <DeleteClientButton clientId={client.id} clientName={client.name} />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="px-5 py-12 text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+              <Users className="h-5 w-5 text-muted-foreground" />
             </div>
-          ) : (
-            <Empty>
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <Users className="h-5 w-5" />
-                </EmptyMedia>
-                <EmptyTitle>No hay clientes</EmptyTitle>
-                <EmptyDescription>
-                  Comenzá agregando tu primer cliente.
-                </EmptyDescription>
-              </EmptyHeader>
 
-              <EmptyContent>
-                <Button asChild>
-                  <Link href="/dashboard/clientes/nuevo">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Agregar cliente
-                  </Link>
-                </Button>
-              </EmptyContent>
-            </Empty>
-          )}
-        </CardContent>
-      </Card>
+            <h3 className="mt-4 text-base font-semibold text-foreground">
+              No hay contactos cargados
+            </h3>
+
+            <p className="mt-1 text-sm text-muted-foreground">
+              Empezá agregando el primero para organizar mejor tus operaciones.
+            </p>
+
+            <div className="mt-5">
+              <Button asChild size="sm" className="rounded-md">
+                <Link href="/dashboard/clientes/nuevo">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Agregar contacto
+                </Link>
+              </Button>
+            </div>
+          </div>
+        )}
+      </section>
     </div>
   )
 }

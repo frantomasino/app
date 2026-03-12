@@ -66,7 +66,6 @@ export function GeneratePdfButton({ remito, company }: GeneratePdfButtonProps) {
         return currentY + (options?.fontSize || 10) * 0.45
       }
 
-      let headerLeftX = margin
       let headerTopY = margin
       let companyTextStartX = margin
 
@@ -75,7 +74,6 @@ export function GeneratePdfButton({ remito, company }: GeneratePdfButtonProps) {
           const logoDataUrl = await imageUrlToDataUrl(company.logo_url)
           const logoWidth = 36
           const logoHeight = 22
-
           const format = logoDataUrl.includes("image/png") ? "PNG" : "JPEG"
 
           doc.addImage(
@@ -123,7 +121,7 @@ export function GeneratePdfButton({ remito, company }: GeneratePdfButtonProps) {
 
       doc.setFont("helvetica", "bold")
       doc.setFontSize(20)
-      doc.text(`REMITO #${remito.number}`, pageWidth - margin, margin + 4, {
+      doc.text(`VENTA #${remito.number}`, pageWidth - margin, margin + 4, {
         align: "right",
       })
 
@@ -187,7 +185,7 @@ export function GeneratePdfButton({ remito, company }: GeneratePdfButtonProps) {
       x += colWidths.description
       doc.text("Cant.", x, y + 2, { align: "center" })
       x += colWidths.quantity
-      doc.text("Precio Unit.", x, y + 2, { align: "right" })
+      doc.text("Precio unit.", x, y + 2, { align: "right" })
       x += colWidths.unitPrice
       doc.text("Subtotal", x + colWidths.subtotal - 2, y + 2, { align: "right" })
 
@@ -242,7 +240,7 @@ export function GeneratePdfButton({ remito, company }: GeneratePdfButtonProps) {
 
       doc.setFontSize(14)
       doc.setFont("helvetica", "bold")
-      doc.text("TOTAL:", pageWidth - margin - 60, y)
+      doc.text("TOTAL", pageWidth - margin - 60, y)
       doc.text(
         `$${Number(remito.total).toLocaleString("es-AR", {
           minimumFractionDigits: 2,
@@ -256,11 +254,11 @@ export function GeneratePdfButton({ remito, company }: GeneratePdfButtonProps) {
       doc.setFontSize(8)
       doc.setFont("helvetica", "normal")
       doc.setTextColor(128)
-      doc.text("Documento generado con Generador de Remitos", pageWidth / 2, footerY, {
+      doc.text("Documento generado con Scarlo", pageWidth / 2, footerY, {
         align: "center",
       })
 
-      doc.save(`remito-${remito.number}.pdf`)
+      doc.save(`venta-${remito.number}.pdf`)
     } catch (error) {
       console.error("Error generating PDF:", error)
     } finally {
@@ -268,10 +266,10 @@ export function GeneratePdfButton({ remito, company }: GeneratePdfButtonProps) {
     }
   }
 
-  return (
-    <Button onClick={generatePdf} disabled={loading}>
-      {loading ? <Spinner className="mr-2" /> : <FileDown className="mr-2 h-4 w-4" />}
-      Descargar PDF
-    </Button>
-  )
+ return (
+  <Button onClick={generatePdf} disabled={loading} size="sm" className="rounded-md">
+    {loading ? <Spinner className="mr-2" /> : <FileDown className="mr-2 h-4 w-4" />}
+    Descargar PDF
+  </Button>
+)
 }

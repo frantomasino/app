@@ -112,7 +112,11 @@ export function DeleteRemitoButton({
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className="rounded-md text-destructive hover:text-destructive"
+        >
           <Trash2 className="h-4 w-4" />
           <span className="sr-only">Eliminar</span>
         </Button>

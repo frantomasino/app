@@ -10,7 +10,7 @@ interface PrintRemitoButtonProps {
 
 export function PrintRemitoButton({
   targetId,
-  fileName = "remito",
+  fileName = "venta",
 }: PrintRemitoButtonProps) {
   const handlePrint = () => {
     const element = document.getElementById(targetId)
@@ -153,10 +153,10 @@ export function PrintRemitoButton({
     printWindow.document.close()
   }
 
-  return (
-    <Button variant="outline" onClick={handlePrint}>
-      <Printer className="mr-2 h-4 w-4" />
-      Imprimir
-    </Button>
-  )
+ return (
+  <Button variant="outline" size="sm" onClick={handlePrint} className="rounded-md">
+    <Printer className="mr-2 h-4 w-4" />
+    Imprimir
+  </Button>
+)
 }

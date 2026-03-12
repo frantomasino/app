@@ -7,7 +7,6 @@ import { createClient } from "@/lib/supabase/client"
 import { Product } from "@/lib/types"
 import { PRODUCT_TEMPLATE_ROWS, normalizeImportedRows } from "@/lib/product-import"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Spinner } from "@/components/ui/spinner"
 import { Download, FileSpreadsheet, Upload, FileDown, AlertCircle, Settings } from "lucide-react"
@@ -210,27 +209,36 @@ export function ProductsImportExport({
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <CardTitle>Importar y exportar catálogo</CardTitle>
-            <CardDescription>
-              Podés cargar tu lista desde CSV o Excel. En esta versión, al importar se reemplaza el catálogo actual de tu empresa.
-            </CardDescription>
-          </div>
+    <div className="space-y-4">
+      <input
+        ref={inputRef}
+        type="file"
+        accept=".csv,.tsv,.xlsx,.xls"
+        className="hidden"
+        onChange={handleFileChange}
+      />
 
+      <div className="flex flex-col gap-4 border border-border/60 bg-background sm:flex-row sm:items-start sm:justify-between">
+        <div className="px-5 py-4">
+          <p className="text-sm font-semibold text-foreground">Herramientas del catálogo</p>
+<p className="mt-1 text-sm text-muted-foreground">
+  Importá desde CSV o Excel, exportá el listado actual o descargá una plantilla base.
+</p>
+        </div>
+
+        <div className="px-5 py-4 sm:pl-0">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button type="button" variant="outline" size="icon" disabled={loading}>
-                {loading ? <Spinner className="h-4 w-4" /> : <Settings className="h-4 w-4" />}
+              <Button type="button" variant="outline" size="sm" disabled={loading} className="rounded-md">
+                {loading ? <Spinner className="mr-2 h-4 w-4" /> : <Settings className="mr-2 h-4 w-4" />}
+                Acciones
               </Button>
             </DropdownMenuTrigger>
 
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => inputRef.current?.click()}>
                 <Upload className="mr-2 h-4 w-4" />
-                Importar registros
+                Importar catálogo
               </DropdownMenuItem>
 
               <DropdownMenuItem onClick={handleExportCsv} disabled={products.length === 0}>
@@ -250,58 +258,49 @@ export function ProductsImportExport({
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-      </CardHeader>
+      </div>
 
-      <CardContent className="space-y-4">
-        <input
-          ref={inputRef}
-          type="file"
-          accept=".csv,.tsv,.xlsx,.xls"
-          className="hidden"
-          onChange={handleFileChange}
-        />
+      <div className="border border-border/60 bg-muted/10 px-5 py-4 text-sm text-muted-foreground">
+       <p className="font-medium text-foreground">Formato</p>
+<p className="mt-1">
+  <span className="font-medium">codigo, nombre, precio, stock</span>
+</p>
+      </div>
 
-        <div className="rounded-lg border bg-muted/20 p-4 text-sm text-muted-foreground">
-          Formatos aceptados:
-          <br />
-          <strong>codigo, nombre, precio, stock</strong>
-        </div>
+      {showEmptyStateTrigger && products.length === 0 ? (
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={loading}
+          className="flex w-full flex-col items-center justify-center gap-3 border border-dashed border-border/60 px-5 py-10 text-center transition hover:bg-muted/20 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+            {loading ? <Spinner className="h-5 w-5" /> : <Upload className="h-5 w-5 text-muted-foreground" />}
+          </div>
 
-        {showEmptyStateTrigger && products.length === 0 ? (
-          <button
-            type="button"
-            onClick={() => inputRef.current?.click()}
-            disabled={loading}
-            className="flex w-full flex-col items-center justify-center gap-3 rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground transition hover:bg-muted/40 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-              {loading ? <Spinner className="h-5 w-5" /> : <Upload className="h-5 w-5" />}
-            </div>
+          <div className="space-y-1">
+            <p className="font-semibold text-foreground">Todavía no cargaste productos</p>
+            <p className="text-sm text-muted-foreground">
+              Importá un archivo CSV o Excel para empezar a trabajar con el inventario.
+            </p>
+          </div>
+        </button>
+      ) : null}
 
-            <div className="space-y-1">
-              <p className="font-medium text-foreground">Todavía no cargaste productos</p>
-              <p className="text-sm text-muted-foreground">
-                Tocá acá para importar un archivo CSV o Excel.
-              </p>
-            </div>
-          </button>
-        ) : null}
+      {message ? (
+        <Alert>
+          <AlertTitle>Importación completada</AlertTitle>
+          <AlertDescription>{message}</AlertDescription>
+        </Alert>
+      ) : null}
 
-        {message ? (
-          <Alert>
-            <AlertTitle>Importación completada</AlertTitle>
-            <AlertDescription>{message}</AlertDescription>
-          </Alert>
-        ) : null}
-
-        {error ? (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>No se pudo importar</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        ) : null}
-      </CardContent>
-    </Card>
+      {error ? (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>No se pudo importar</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      ) : null}
+    </div>
   )
 }

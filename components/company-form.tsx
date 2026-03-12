@@ -7,7 +7,6 @@ import { createClient } from "@/lib/supabase/client"
 import { Company } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { FieldGroup, Field, FieldLabel } from "@/components/ui/field"
 import { Spinner } from "@/components/ui/spinner"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -38,7 +37,7 @@ export function CompanyForm({ company, userId }: CompanyFormProps) {
     setLoading(true)
 
     if (!name.trim()) {
-      setError("El nombre de la empresa es obligatorio")
+      setError("El nombre de la empresa es obligatorio.")
       setLoading(false)
       return
     }
@@ -57,7 +56,7 @@ export function CompanyForm({ company, userId }: CompanyFormProps) {
       },
       {
         onConflict: "id",
-      },
+      }
     )
 
     if (error) {
@@ -72,17 +71,16 @@ export function CompanyForm({ company, userId }: CompanyFormProps) {
   }
 
   return (
-    <Card className="max-w-2xl">
-      <CardHeader>
-        <CardTitle>Datos de la empresa</CardTitle>
-        <CardDescription>Estos datos aparecerán en tus remitos.</CardDescription>
-      </CardHeader>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <section className="space-y-4">
+        <div className="border-b border-border/60 pb-2">
+          <p className="text-sm font-semibold text-foreground">Información general</p>
+        </div>
 
-      <form onSubmit={handleSubmit}>
-        <CardContent>
-          <FieldGroup>
+        <FieldGroup>
+          <div className="grid gap-4 lg:grid-cols-2">
             <Field>
-              <FieldLabel htmlFor="name">Nombre de la empresa *</FieldLabel>
+              <FieldLabel htmlFor="name">Empresa *</FieldLabel>
               <Input
                 id="name"
                 type="text"
@@ -102,10 +100,9 @@ export function CompanyForm({ company, userId }: CompanyFormProps) {
                 value={cuit}
                 onChange={(e) => setCuit(e.target.value)}
               />
-              <p className="mt-1 text-xs text-muted-foreground">Opcional.</p>
             </Field>
 
-            <Field>
+            <Field className="lg:col-span-2">
               <FieldLabel htmlFor="address">Dirección</FieldLabel>
               <Input
                 id="address"
@@ -115,92 +112,107 @@ export function CompanyForm({ company, userId }: CompanyFormProps) {
                 onChange={(e) => setAddress(e.target.value)}
               />
             </Field>
+          </div>
+        </FieldGroup>
+      </section>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field>
-                <FieldLabel htmlFor="phone">Teléfono</FieldLabel>
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="+54 11 1234-5678"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                />
-              </Field>
+      <section className="space-y-4">
+        <div className="border-b border-border/60 pb-2">
+          <p className="text-sm font-semibold text-foreground">Contacto</p>
+        </div>
 
-              <Field>
-                <FieldLabel htmlFor="email">Email</FieldLabel>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="contacto@miempresa.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </Field>
-            </div>
-
+        <FieldGroup>
+          <div className="grid gap-4 lg:grid-cols-2">
             <Field>
-              <FieldLabel htmlFor="logoUrl">URL del Logo</FieldLabel>
+              <FieldLabel htmlFor="phone">Teléfono</FieldLabel>
               <Input
-                id="logoUrl"
-                type="url"
-                placeholder="https://ejemplo.com/logo.png"
-                value={logoUrl}
-                onChange={(e) => {
-                  setLogoUrl(e.target.value)
-                  setImageError(false)
-                }}
+                id="phone"
+                type="tel"
+                placeholder="+54 11 1234-5678"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
               />
-              <p className="mt-1 text-xs text-muted-foreground">
-                Ingresá la URL pública de tu logo. Aparecerá en los PDFs de tus remitos.
-              </p>
             </Field>
 
-            {logoUrl.trim() ? (
-              <div className="rounded-lg border p-4">
-                <p className="mb-3 text-sm font-medium">Vista previa del logo</p>
+            <Field>
+              <FieldLabel htmlFor="email">Email</FieldLabel>
+              <Input
+                id="email"
+                type="email"
+                placeholder="contacto@miempresa.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </Field>
+          </div>
+        </FieldGroup>
+      </section>
 
-                {!imageError ? (
-                  <div className="flex min-h-[120px] items-center justify-center rounded-md bg-muted/30 p-4">
-                    <Image
-                      src={logoUrl}
-                      alt="Logo de la empresa"
-                      width={220}
-                      height={120}
-                      className="h-auto max-h-[120px] w-auto object-contain"
-                      unoptimized
-                      onError={() => setImageError(true)}
-                    />
-                  </div>
-                ) : (
-                  <div className="rounded-md border border-dashed p-4 text-sm text-destructive">
-                    No se pudo mostrar el logo. Revisá que la URL sea pública y apunte directo a una imagen.
-                  </div>
-                )}
-              </div>
-            ) : null}
-          </FieldGroup>
+      <section className="space-y-4">
+        <div className="border-b border-border/60 pb-2">
+          <p className="text-sm font-semibold text-foreground">Logo</p>
+        </div>
 
-          {error ? <p className="mt-4 text-sm text-destructive">{error}</p> : null}
+        <FieldGroup>
+          <Field>
+            <FieldLabel htmlFor="logoUrl">URL</FieldLabel>
+            <Input
+              id="logoUrl"
+              type="url"
+              placeholder="https://ejemplo.com/logo.png"
+              value={logoUrl}
+              onChange={(e) => {
+                setLogoUrl(e.target.value)
+                setImageError(false)
+              }}
+            />
+          </Field>
 
-          {success ? (
-            <Alert className="mt-4 border-green-200 bg-green-50 text-green-900">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              <AlertDescription>
-                Los datos de tu empresa se guardaron correctamente.
-              </AlertDescription>
-            </Alert>
+          {logoUrl.trim() ? (
+            <div className="border border-border/60 bg-muted/10 p-4">
+              {!imageError ? (
+                <div className="flex min-h-[120px] items-center justify-center border border-dashed border-border/60 bg-background p-4">
+                  <Image
+                    src={logoUrl}
+                    alt="Logo de la empresa"
+                    width={220}
+                    height={120}
+                    className="h-auto max-h-[120px] w-auto object-contain"
+                    unoptimized
+                    onError={() => setImageError(true)}
+                  />
+                </div>
+              ) : (
+                <div className="border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+                  No se pudo cargar la imagen.
+                </div>
+              )}
+            </div>
           ) : null}
-        </CardContent>
+        </FieldGroup>
+      </section>
 
-        <CardFooter>
-          <Button type="submit" disabled={loading}>
-            {loading ? <Spinner className="mr-2" /> : null}
-            Guardar cambios
-          </Button>
-        </CardFooter>
-      </form>
-    </Card>
+      {error ? (
+        <Alert className="border-destructive/30 bg-destructive/5 text-destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      ) : null}
+
+      {success ? (
+        <Alert className="border-emerald-200 bg-emerald-50 text-emerald-900">
+          <CheckCircle className="h-4 w-4 text-emerald-600" />
+          <AlertDescription>
+            Los datos se guardaron correctamente.
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
+      <div className="flex justify-end border-t border-border/60 pt-4">
+        <Button type="submit" size="sm" disabled={loading} className="rounded-md">
+          {loading ? <Spinner className="mr-2" /> : null}
+          Guardar cambios
+        </Button>
+      </div>
+    </form>
   )
 }

@@ -6,7 +6,6 @@ import { createClient } from "@/lib/supabase/client"
 import { Client } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { FieldGroup, Field, FieldLabel } from "@/components/ui/field"
 import { Spinner } from "@/components/ui/spinner"
 
@@ -75,27 +74,28 @@ export function ClientForm({ client, userId }: ClientFormProps) {
   }
 
   return (
-    <Card className="max-w-2xl">
-      <CardHeader>
-        <CardTitle>{isEditing ? "Editar cliente" : "Nuevo cliente"}</CardTitle>
-        <CardDescription>
-          {isEditing ? "Modificá los datos del cliente" : "Completá los datos del nuevo cliente"}
-        </CardDescription>
-      </CardHeader>
-      <form onSubmit={handleSubmit}>
-        <CardContent>
-          <FieldGroup>
-            <Field>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <section className="space-y-4">
+        <div className="border-b border-border/60 pb-2">
+          <p className="text-sm font-semibold text-foreground">
+            {isEditing ? "Editar contacto" : "Datos del contacto"}
+          </p>
+        </div>
+
+        <FieldGroup>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field className="md:col-span-2">
               <FieldLabel htmlFor="name">Nombre *</FieldLabel>
               <Input
                 id="name"
                 type="text"
-                placeholder="Nombre del cliente o empresa"
+                placeholder="Nombre del contacto o empresa"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
               />
             </Field>
+
             <Field>
               <FieldLabel htmlFor="cuit">CUIT</FieldLabel>
               <Input
@@ -106,53 +106,65 @@ export function ClientForm({ client, userId }: ClientFormProps) {
                 onChange={(e) => setCuit(e.target.value)}
               />
             </Field>
+
             <Field>
+              <FieldLabel htmlFor="phone">Teléfono</FieldLabel>
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="+54 11 1234-5678"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
+            </Field>
+
+            <Field className="md:col-span-2">
               <FieldLabel htmlFor="address">Dirección</FieldLabel>
               <Input
                 id="address"
                 type="text"
-                placeholder="Dirección del cliente"
+                placeholder="Dirección del contacto"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
               />
             </Field>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field>
-                <FieldLabel htmlFor="phone">Teléfono</FieldLabel>
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="+54 11 1234-5678"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                />
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="email">Email</FieldLabel>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="email@ejemplo.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </Field>
-            </div>
-          </FieldGroup>
-          {error && (
-            <p className="text-sm text-destructive mt-4">{error}</p>
-          )}
-        </CardContent>
-        <CardFooter className="flex gap-2">
-          <Button type="submit" disabled={loading}>
-            {loading ? <Spinner className="mr-2" /> : null}
-            {isEditing ? "Guardar cambios" : "Crear cliente"}
-          </Button>
-          <Button type="button" variant="outline" onClick={() => router.back()}>
-            Cancelar
-          </Button>
-        </CardFooter>
-      </form>
-    </Card>
+
+            <Field className="md:col-span-2">
+              <FieldLabel htmlFor="email">Email</FieldLabel>
+              <Input
+                id="email"
+                type="email"
+                placeholder="email@ejemplo.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </Field>
+          </div>
+        </FieldGroup>
+
+        {error ? (
+          <div className="border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+            {error}
+          </div>
+        ) : null}
+      </section>
+
+      <div className="flex flex-col-reverse gap-2 border-t border-border/60 pt-4 sm:flex-row sm:justify-end">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => router.back()}
+          className="rounded-md"
+        >
+          Cancelar
+        </Button>
+
+        <Button type="submit" size="sm" disabled={loading} className="rounded-md">
+          {loading ? <Spinner className="mr-2" /> : null}
+          {isEditing ? "Guardar cambios" : "Crear contacto"}
+        </Button>
+      </div>
+    </form>
   )
 }

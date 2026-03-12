@@ -31,7 +31,7 @@ export function DeleteClientButton({ clientId, clientName }: DeleteClientButtonP
   const handleDelete = async () => {
     setLoading(true)
     const supabase = createClient()
-    
+
     const { error } = await supabase
       .from("clients")
       .delete()
@@ -44,29 +44,36 @@ export function DeleteClientButton({ clientId, clientName }: DeleteClientButtonP
     }
 
     setOpen(false)
+    setLoading(false)
     router.refresh()
   }
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className="rounded-md text-destructive hover:text-destructive"
+        >
           <Trash2 className="h-4 w-4" />
           <span className="sr-only">Eliminar</span>
         </Button>
       </AlertDialogTrigger>
+
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>¿Eliminar cliente?</AlertDialogTitle>
           <AlertDialogDescription>
             Estás por eliminar a <strong>{clientName}</strong>. Esta acción no se puede deshacer.
-            Los remitos asociados a este cliente conservarán su información.
+            Los registros asociados a este cliente conservarán su información.
           </AlertDialogDescription>
         </AlertDialogHeader>
+
         <AlertDialogFooter>
           <AlertDialogCancel disabled={loading}>Cancelar</AlertDialogCancel>
-          <AlertDialogAction 
-            onClick={handleDelete} 
+          <AlertDialogAction
+            onClick={handleDelete}
             disabled={loading}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
