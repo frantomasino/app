@@ -22,6 +22,11 @@ interface RemitosTableProps {
 
 type StatusFilter = "all" | "confirmed" | "cancelled"
 
+function formatDateOnly(dateString: string) {
+  const [year, month, day] = dateString.split("-")
+  return `${day}/${month}/${year}`
+}
+
 export function RemitosTable({ remitos }: RemitosTableProps) {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
 
@@ -176,7 +181,7 @@ export function RemitosTable({ remitos }: RemitosTableProps) {
                         href={`/dashboard/remitos/${remito.id}`}
                         className="block hover:underline"
                       >
-                        {new Date(remito.date).toLocaleDateString("es-AR")}
+                        {formatDateOnly(remito.date)}
                       </Link>
                     </td>
                   </tr>

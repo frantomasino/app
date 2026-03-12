@@ -24,6 +24,23 @@ interface VerRemitoPageProps {
   params: Promise<{ id: string }>
 }
 
+function parseLocalDate(dateString: string) {
+  const [year, month, day] = dateString.split("-").map(Number)
+  return new Date(year, month - 1, day)
+}
+
+function formatDateOnly(dateString: string) {
+  return parseLocalDate(dateString).toLocaleDateString("es-AR")
+}
+
+function formatWeekday(dateString: string) {
+  const weekday = parseLocalDate(dateString).toLocaleDateString("es-AR", {
+    weekday: "long",
+  })
+
+  return weekday.charAt(0).toUpperCase() + weekday.slice(1)
+}
+
 export default async function VerRemitoPage({ params }: VerRemitoPageProps) {
   const { id } = await params
   const supabase = await createClient()
@@ -128,14 +145,8 @@ export default async function VerRemitoPage({ params }: VerRemitoPageProps) {
               <div className="grid grid-cols-[140px_minmax(0,1fr)] items-center gap-x-4 gap-y-1 border-b border-border/60 pb-3">
                 <span className="text-sm font-semibold text-foreground">Fecha</span>
                 <div>
-                  <p className="text-sm text-foreground">
-                    {new Date(remito.date).toLocaleDateString("es-AR")}
-                  </p>
-                  <p className="text-sm capitalize text-muted-foreground">
-                    {new Date(remito.date).toLocaleDateString("es-AR", {
-                      weekday: "long",
-                    })}
-                  </p>
+                  <p className="text-sm text-foreground">{formatDateOnly(remito.date)}</p>
+                  <p className="text-sm text-muted-foreground">{formatWeekday(remito.date)}</p>
                 </div>
               </div>
 
@@ -238,9 +249,7 @@ export default async function VerRemitoPage({ params }: VerRemitoPageProps) {
                 <div className="print-remito-box rounded-lg border px-4 py-3 text-sm">
                   <p className="muted text-muted-foreground">Venta</p>
                   <p className="text-xl font-bold">#{remito.number}</p>
-                  <p className="muted text-muted-foreground">
-                    {new Date(remito.date).toLocaleDateString("es-AR")}
-                  </p>
+                  <p className="muted text-muted-foreground">{formatDateOnly(remito.date)}</p>
                 </div>
               </div>
             </CardContent>

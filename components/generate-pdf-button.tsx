@@ -11,6 +11,15 @@ interface GeneratePdfButtonProps {
   company: Company
 }
 
+function parseLocalDate(dateString: string) {
+  const [year, month, day] = dateString.split("-").map(Number)
+  return new Date(year, month - 1, day)
+}
+
+function formatDateOnly(dateString: string) {
+  return parseLocalDate(dateString).toLocaleDateString("es-AR")
+}
+
 async function imageUrlToDataUrl(url: string): Promise<string> {
   const response = await fetch(url)
   if (!response.ok) {
@@ -128,7 +137,7 @@ export function GeneratePdfButton({ remito, company }: GeneratePdfButtonProps) {
       doc.setFont("helvetica", "normal")
       doc.setFontSize(10)
       doc.text(
-        `Fecha: ${new Date(remito.date).toLocaleDateString("es-AR")}`,
+        `Fecha: ${formatDateOnly(remito.date)}`,
         pageWidth - margin,
         margin + 12,
         { align: "right" },
@@ -266,10 +275,10 @@ export function GeneratePdfButton({ remito, company }: GeneratePdfButtonProps) {
     }
   }
 
- return (
-  <Button onClick={generatePdf} disabled={loading} size="sm" className="rounded-md">
-    {loading ? <Spinner className="mr-2" /> : <FileDown className="mr-2 h-4 w-4" />}
-    Descargar PDF
-  </Button>
-)
+  return (
+    <Button onClick={generatePdf} disabled={loading} size="sm" className="rounded-md">
+      {loading ? <Spinner className="mr-2" /> : <FileDown className="mr-2 h-4 w-4" />}
+      Descargar PDF
+    </Button>
+  )
 }
