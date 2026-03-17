@@ -12,7 +12,13 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft } from "lucide-react"
+import {
+  ArrowLeft,
+  CalendarDays,
+  MapPin,
+  Receipt,
+  UserRound,
+} from "lucide-react"
 import { RemitoWithItems, Company } from "@/lib/types"
 import { GeneratePdfButton } from "@/components/generate-pdf-button"
 import { PrintRemitoButton } from "@/components/print-remito-button"
@@ -39,6 +45,13 @@ function formatWeekday(dateString: string) {
   })
 
   return weekday.charAt(0).toUpperCase() + weekday.slice(1)
+}
+
+function formatCurrency(value: number) {
+  return value.toLocaleString("es-AR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
 }
 
 export default async function VerRemitoPage({ params }: VerRemitoPageProps) {
@@ -81,12 +94,16 @@ export default async function VerRemitoPage({ params }: VerRemitoPageProps) {
   }
 
   const isCancelled = remito.status === "cancelled"
+  const totalItems = remitoWithItems.items.reduce(
+    (acc, item) => acc + Number(item.quantity || 0),
+    0,
+  )
 
   return (
     <>
-      <div className="mx-auto w-full max-w-7xl space-y-4">
-        <section className="border border-border/60 bg-card">
-          <div className="flex flex-col gap-4 border-b border-border/60 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
+      <div className="mx-auto w-full max-w-6xl space-y-4">
+        <section className="rounded-2xl border border-border/70 bg-card">
+          <div className="flex flex-col gap-4 border-b border-border/70 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center gap-3">
               <Button asChild variant="ghost" size="icon-sm" className="rounded-full">
                 <Link href="/dashboard/remitos">
@@ -94,13 +111,18 @@ export default async function VerRemitoPage({ params }: VerRemitoPageProps) {
                 </Link>
               </Button>
 
-              <p className="text-sm text-muted-foreground">Volver al listado</p>
+              <div>
+                <p className="text-sm text-muted-foreground">Volver a pedidos</p>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-primary">
+                  Registro comercial
+                </p>
+              </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-1.5">
+            <div className="flex flex-wrap items-center gap-2">
               <PrintRemitoButton
                 targetId="remito-print-area"
-                fileName={`venta-${remito.number}`}
+                fileName={`pedido-${remito.number}`}
               />
               <GeneratePdfButton remito={remitoWithItems} company={company as Company} />
               <CancelRemitoButton
@@ -116,96 +138,164 @@ export default async function VerRemitoPage({ params }: VerRemitoPageProps) {
             </div>
           </div>
 
-          <div className="px-5 py-4">
-            <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-[1.65rem] font-semibold tracking-[-0.025em] text-foreground">
-                Venta #{remito.number}
-              </h1>
+          <div className="px-5 py-5">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-3">
+                  <h1 className="text-3xl font-semibold tracking-[-0.04em] text-foreground">
+                    Pedido #{remito.number}
+                  </h1>
 
-              {isCancelled ? (
-                <Badge variant="destructive">Cancelada</Badge>
-              ) : (
-                <Badge className="border-0 bg-emerald-500/12 text-emerald-700 hover:bg-emerald-500/12 dark:text-emerald-300">
-                  Confirmada
-                </Badge>
-              )}
+                  {isCancelled ? (
+                    <Badge variant="destructive">Cancelado</Badge>
+                  ) : (
+                    <Badge className="border-0 bg-emerald-500/12 text-emerald-700 hover:bg-emerald-500/12 dark:text-emerald-300">
+                      Vigente
+                    </Badge>
+                  )}
+                </div>
+
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+                  Ficha del pedido con cliente, fecha, detalle de productos y total de la operación.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-border/70 bg-muted/15 px-4 py-4 text-right lg:min-w-[220px]">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                  Total del pedido
+                </p>
+                <p className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
+                  ${formatCurrency(Number(remito.total || 0))}
+                </p>
+              </div>
             </div>
 
-            <div className="mt-6 grid gap-x-10 gap-y-5 lg:grid-cols-2">
-              <div className="grid grid-cols-[140px_minmax(0,1fr)] items-center gap-x-4 gap-y-1 border-b border-border/60 pb-3">
-                <span className="text-sm font-semibold text-foreground">Cliente</span>
-                <div>
-                  <p className="text-sm text-foreground">{remito.client_name}</p>
-                  {remito.client_cuit ? (
-                    <p className="text-sm text-muted-foreground">CUIT: {remito.client_cuit}</p>
-                  ) : null}
+            <div className="mt-6 grid gap-0 rounded-2xl border border-border/70 bg-background md:grid-cols-2 xl:grid-cols-4">
+              <div className="border-b border-border/70 px-4 py-4 xl:border-b-0 xl:border-r">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <UserRound className="h-4.5 w-4.5" />
+                  </div>
+
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                      Cliente
+                    </p>
+                    <p className="mt-1 font-semibold text-foreground">{remito.client_name}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {remito.client_cuit ? `CUIT: ${remito.client_cuit}` : "Sin CUIT"}
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-[140px_minmax(0,1fr)] items-center gap-x-4 gap-y-1 border-b border-border/60 pb-3">
-                <span className="text-sm font-semibold text-foreground">Fecha</span>
-                <div>
-                  <p className="text-sm text-foreground">{formatDateOnly(remito.date)}</p>
-                  <p className="text-sm text-muted-foreground">{formatWeekday(remito.date)}</p>
+              <div className="border-b border-border/70 px-4 py-4 md:border-l-0 xl:border-b-0 xl:border-r">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <CalendarDays className="h-4.5 w-4.5" />
+                  </div>
+
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                      Fecha
+                    </p>
+                    <p className="mt-1 font-semibold text-foreground">
+                      {formatDateOnly(remito.date)}
+                    </p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {formatWeekday(remito.date)}
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              {remito.client_address ? (
-                <div className="grid grid-cols-[140px_minmax(0,1fr)] items-center gap-x-4 gap-y-1 border-b border-border/60 pb-3 lg:col-span-2">
-                  <span className="text-sm font-semibold text-foreground">Dirección</span>
-                  <p className="text-sm text-muted-foreground">{remito.client_address}</p>
+              <div className="border-b border-border/70 px-4 py-4 xl:border-b-0 xl:border-r">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <Receipt className="h-4.5 w-4.5" />
+                  </div>
+
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                      Productos
+                    </p>
+                    <p className="mt-1 font-semibold text-foreground">
+                      {remitoWithItems.items.length} cargados
+                    </p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {totalItems} unidades
+                    </p>
+                  </div>
                 </div>
-              ) : null}
+              </div>
+
+              <div className="px-4 py-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <MapPin className="h-4.5 w-4.5" />
+                  </div>
+
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                      Dirección
+                    </p>
+                    <p className="mt-1 text-sm text-foreground">
+                      {remito.client_address || "Sin dirección cargada"}
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
+        </section>
 
-          <div className="border-t border-border/60 px-5 py-3">
-            <p className="text-sm font-medium text-foreground">Detalle</p>
+        <section className="rounded-2xl border border-border/70 bg-card">
+          <div className="border-b border-border/70 px-5 py-4">
+            <p className="text-sm font-semibold text-foreground">Detalle del pedido</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Productos, cantidades, precios unitarios y subtotales de la operación.
+            </p>
           </div>
 
           <div className="px-5 py-5">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Producto</TableHead>
-                  <TableHead className="text-right">Cantidad</TableHead>
-                  <TableHead className="text-right">Precio unit.</TableHead>
-                  <TableHead className="text-right">Subtotal</TableHead>
-                </TableRow>
-              </TableHeader>
+            <div className="overflow-hidden rounded-2xl border border-border/70">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Producto</TableHead>
+                    <TableHead className="text-right">Cantidad</TableHead>
+                    <TableHead className="text-right">Precio unit.</TableHead>
+                    <TableHead className="text-right">Subtotal</TableHead>
+                  </TableRow>
+                </TableHeader>
 
-              <TableBody>
-                {remitoWithItems.items.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="font-medium text-foreground">
-                      {item.description}
+                <TableBody>
+                  {remitoWithItems.items.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell className="font-medium text-foreground">
+                        {item.description}
+                      </TableCell>
+                      <TableCell className="text-right">{item.quantity}</TableCell>
+                      <TableCell className="text-right">
+                        ${formatCurrency(Number(item.unit_price || 0))}
+                      </TableCell>
+                      <TableCell className="text-right font-semibold text-foreground">
+                        ${formatCurrency(Number(item.subtotal || 0))}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+
+                  <TableRow className="bg-muted/20">
+                    <TableCell colSpan={3} className="text-right text-sm font-semibold">
+                      Total
                     </TableCell>
-                    <TableCell className="text-right">{item.quantity}</TableCell>
-                    <TableCell className="text-right">
-                      ${Number(item.unit_price).toLocaleString("es-AR", {
-                        minimumFractionDigits: 2,
-                      })}
-                    </TableCell>
-                    <TableCell className="text-right font-semibold text-foreground">
-                      ${Number(item.subtotal).toLocaleString("es-AR", {
-                        minimumFractionDigits: 2,
-                      })}
+                    <TableCell className="text-right text-base font-semibold">
+                      ${formatCurrency(Number(remito.total || 0))}
                     </TableCell>
                   </TableRow>
-                ))}
-
-                <TableRow className="bg-muted/20">
-                  <TableCell colSpan={3} className="text-right text-sm font-semibold">
-                    Total
-                  </TableCell>
-                  <TableCell className="text-right text-base font-semibold">
-                    ${Number(remito.total).toLocaleString("es-AR", {
-                      minimumFractionDigits: 2,
-                    })}
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
+                </TableBody>
+              </Table>
+            </div>
           </div>
         </section>
       </div>
@@ -247,7 +337,7 @@ export default async function VerRemitoPage({ params }: VerRemitoPageProps) {
                 </div>
 
                 <div className="print-remito-box rounded-lg border px-4 py-3 text-sm">
-                  <p className="muted text-muted-foreground">Venta</p>
+                  <p className="muted text-muted-foreground">Pedido</p>
                   <p className="text-xl font-bold">#{remito.number}</p>
                   <p className="muted text-muted-foreground">{formatDateOnly(remito.date)}</p>
                 </div>
@@ -277,9 +367,7 @@ export default async function VerRemitoPage({ params }: VerRemitoPageProps) {
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold">
-                  ${Number(remito.total).toLocaleString("es-AR", {
-                    minimumFractionDigits: 2,
-                  })}
+                  ${formatCurrency(Number(remito.total || 0))}
                 </p>
               </CardContent>
             </Card>
@@ -287,7 +375,7 @@ export default async function VerRemitoPage({ params }: VerRemitoPageProps) {
 
           <Card className="print-card">
             <CardHeader>
-              <CardTitle>Detalle de la venta</CardTitle>
+              <CardTitle>Detalle del pedido</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
@@ -306,14 +394,10 @@ export default async function VerRemitoPage({ params }: VerRemitoPageProps) {
                         <TableCell>{item.description}</TableCell>
                         <TableCell className="text-right">{item.quantity}</TableCell>
                         <TableCell className="text-right">
-                          ${Number(item.unit_price).toLocaleString("es-AR", {
-                            minimumFractionDigits: 2,
-                          })}
+                          ${formatCurrency(Number(item.unit_price || 0))}
                         </TableCell>
                         <TableCell className="text-right font-medium">
-                          ${Number(item.subtotal).toLocaleString("es-AR", {
-                            minimumFractionDigits: 2,
-                          })}
+                          ${formatCurrency(Number(item.subtotal || 0))}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -323,9 +407,7 @@ export default async function VerRemitoPage({ params }: VerRemitoPageProps) {
                         Total
                       </TableCell>
                       <TableCell className="text-right font-bold">
-                        ${Number(remito.total).toLocaleString("es-AR", {
-                          minimumFractionDigits: 2,
-                        })}
+                        ${formatCurrency(Number(remito.total || 0))}
                       </TableCell>
                     </TableRow>
                   </TableBody>

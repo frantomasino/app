@@ -2,8 +2,16 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Plus, Users } from "lucide-react"
 import { RemitosTable } from "@/components/remitos-table"
+
+function formatCurrency(value: number) {
+  return value.toLocaleString("es-AR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+}
 
 export default async function RemitosPage() {
   const supabase = await createClient()
@@ -24,7 +32,7 @@ export default async function RemitosPage() {
       .from("remitos")
       .select("*")
       .eq("company_id", user.id)
-      .order("created_at", { ascending: false }),
+      .order("date", { ascending: false }),
     supabase
       .from("clients")
       .select("*", { count: "exact", head: true })
@@ -32,85 +40,66 @@ export default async function RemitosPage() {
   ])
 
   if (remitosError) {
-    console.error("Error cargando remitos:", remitosError)
+    console.error("Error cargando pedidos:", remitosError)
   }
 
   if (clientsCountError) {
-    console.error("Error cargando cantidad de contactos:", clientsCountError)
+    console.error("Error cargando cantidad de clientes:", clientsCountError)
   }
 
   const remitosList = remitos ?? []
-  const totalRegistros = remitosList.length
-  const totalContactos = clientsCount || 0
-  const totalFacturado = remitosList
-    .filter((remito) => remito.status !== "cancelled")
-    .reduce((acc, remito) => acc + Number(remito.total || 0), 0)
+  const totalClientes = clientsCount || 0
+
+  const pedidosVigentes = remitosList.filter((remito) => remito.status !== "cancelled")
+  const totalFacturado = pedidosVigentes.reduce(
+    (acc, remito) => acc + Number(remito.total || 0),
+    0,
+  )
 
   return (
     <div className="space-y-4">
-      <section className="border border-border/60 bg-card">
-        <div className="flex flex-col gap-4 border-b border-border/60 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <h1 className="text-[1.65rem] font-semibold tracking-[-0.025em] text-foreground">
-              Ventas
+      <section className="rounded-2xl border border-border/70 bg-card">
+        <div className="flex flex-col gap-4 px-5 py-5 lg:flex-row lg:items-end lg:justify-between">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="outline">Bandeja comercial</Badge>
+              <Badge className="border-0 bg-primary/10 text-primary hover:bg-primary/10">
+                {remitosList.length} pedidos
+              </Badge>
+            </div>
+
+            <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-foreground">
+              Pedidos
             </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Consultá y administrá los registros emitidos.
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+              Consultá, filtrá y seguí la operación comercial desde una sola bandeja.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-1.5">
-            <Button asChild variant="outline" size="sm" className="rounded-md">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button asChild variant="outline" size="sm">
               <Link href="/dashboard/clientes">
                 <Users className="mr-2 h-4 w-4" />
-                Ver contactos
+                Ver clientes
               </Link>
             </Button>
 
-            <Button asChild size="sm" className="rounded-md">
+            <Button asChild size="sm">
               <Link href="/dashboard/remitos/nuevo">
                 <Plus className="mr-2 h-4 w-4" />
-                Nuevo registro
+                Nuevo pedido
               </Link>
             </Button>
           </div>
         </div>
 
-        <div className="grid gap-0 lg:grid-cols-3">
-          <div className="border-b border-border/60 px-5 py-4 lg:border-b-0 lg:border-r">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-              Registros
-            </p>
-            <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
-              {totalRegistros}
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Total emitido en el sistema
-            </p>
-          </div>
-
-          <div className="border-b border-border/60 px-5 py-4 lg:border-b-0 lg:border-r">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-              Contactos
-            </p>
-            <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
-              {totalContactos}
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Disponibles para operar
-            </p>
-          </div>
-
-          <div className="px-5 py-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-              Total acumulado
-            </p>
-            <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
-              ${totalFacturado.toLocaleString("es-AR", { minimumFractionDigits: 2 })}
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Solo registros confirmados
-            </p>
+        <div className="border-t border-border/70 px-5 py-3">
+          <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+            <span>{pedidosVigentes.length} vigentes</span>
+            <span>•</span>
+            <span>{totalClientes} clientes</span>
+            <span>•</span>
+            <span>${formatCurrency(totalFacturado)} vendidos</span>
           </div>
         </div>
       </section>

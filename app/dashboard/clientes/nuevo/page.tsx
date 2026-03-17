@@ -13,14 +13,14 @@ export default async function NuevoClientePage() {
   }
 
   return (
-    <div className="space-y-4">
-      <section className="border border-border/60 bg-card">
-        <div className="border-b border-border/60 px-5 py-4">
-          <h1 className="text-[1.65rem] font-semibold tracking-[-0.025em] text-foreground">
+    <div className="space-y-5">
+      <section className="overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm">
+        <div className="border-b border-border/60 px-5 py-5">
+          <h1 className="text-[1.75rem] font-semibold tracking-[-0.03em] text-foreground">
             Nuevo cliente
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Cargá la información principal para incorporarlo al sistema.
+            Cargá la información principal para sumar un nuevo cliente a tu base comercial.
           </p>
         </div>
 

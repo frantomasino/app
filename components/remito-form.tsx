@@ -8,7 +8,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { FieldGroup, Field, FieldLabel } from "@/components/ui/field"
 import { Spinner } from "@/components/ui/spinner"
-import { Plus, Trash2 } from "lucide-react"
+import {
+  Plus,
+  Trash2,
+  UserRound,
+  Package,
+  Receipt,
+  CalendarDays,
+} from "lucide-react"
 
 interface RemitoItem {
   id: string
@@ -142,6 +149,9 @@ export function RemitoForm({
     return product ? product.stock : null
   }
 
+  const totalProductos = items.length
+  const totalUnidades = items.reduce((sum, item) => sum + Number(item.quantity || 0), 0)
+
   const calculateTotal = () => {
     return items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0)
   }
@@ -152,19 +162,19 @@ export function RemitoForm({
     setLoading(true)
 
     if (!clientName.trim()) {
-      setError("El nombre del cliente es obligatorio.")
+      setError("Seleccioná o ingresá un cliente para continuar.")
       setLoading(false)
       return
     }
 
     if (items.some((item) => !item.description.trim())) {
-      setError("Todos los ítems deben tener un producto.")
+      setError("Todos los ítems deben tener un producto cargado.")
       setLoading(false)
       return
     }
 
     if (items.some((item) => !item.product_id)) {
-      setError("Todos los ítems deben existir en el inventario.")
+      setError("Todos los productos deben existir en el catálogo.")
       setLoading(false)
       return
     }
@@ -210,7 +220,7 @@ export function RemitoForm({
         const product = stockMap.get(item.product_id)
 
         if (!product) {
-          setError(`No se encontró el producto "${item.description}" en el inventario.`)
+          setError(`No se encontró el producto "${item.description}" en el catálogo.`)
           setLoading(false)
           return
         }
@@ -277,7 +287,7 @@ export function RemitoForm({
         .eq("company_id", userId)
 
       if (stockError) {
-        setError("La operación se guardó, pero no se pudo actualizar el stock.")
+        setError("El pedido se guardó, pero no se pudo actualizar el stock.")
         setLoading(false)
         return
       }
@@ -289,208 +299,316 @@ export function RemitoForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <section className="space-y-4">
-        <div className="border-b border-border/60 pb-2">
-          <p className="text-sm font-semibold text-foreground">Cliente</p>
+      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <div className="rounded-xl border border-border/60 bg-background px-4 py-3">
+          <div className="flex items-start gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Receipt className="h-4.5 w-4.5" />
+            </div>
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                Pedido
+              </p>
+              <p className="mt-1 text-xl font-semibold tracking-tight text-foreground">
+                #{nextNumber}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Número sugerido
+              </p>
+            </div>
+          </div>
         </div>
 
-        <FieldGroup>
-          <div className="grid gap-4 lg:grid-cols-2">
-            <Field>
-              <FieldLabel htmlFor="clientName">Nombre *</FieldLabel>
-              <Input
-                id="clientName"
-                list="clients-suggestions"
-                type="text"
-                placeholder="Buscá o escribí el nombre del cliente"
-                value={clientName}
-                onChange={(e) => handleClientNameChange(e.target.value)}
-                required
-              />
-              <datalist id="clients-suggestions">
-                {clientOptions.map((client) => (
-                  <option key={client.id} value={client.name} />
-                ))}
-              </datalist>
-            </Field>
-
-            <Field>
-              <FieldLabel htmlFor="date">Fecha *</FieldLabel>
-              <Input
-                id="date"
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                required
-              />
-            </Field>
-
-            <Field>
-              <FieldLabel htmlFor="clientCuit">CUIT</FieldLabel>
-              <Input
-                id="clientCuit"
-                type="text"
-                placeholder="XX-XXXXXXXX-X"
-                value={clientCuit}
-                onChange={(e) => setClientCuit(e.target.value)}
-              />
-            </Field>
-
-            <Field>
-              <FieldLabel htmlFor="clientAddress">Dirección</FieldLabel>
-              <Input
-                id="clientAddress"
-                type="text"
-                placeholder="Dirección del cliente"
-                value={clientAddress}
-                onChange={(e) => setClientAddress(e.target.value)}
-              />
-            </Field>
+        <div className="rounded-xl border border-border/60 bg-background px-4 py-3">
+          <div className="flex items-start gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <UserRound className="h-4.5 w-4.5" />
+            </div>
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                Cliente
+              </p>
+              <p className="mt-1 text-xl font-semibold tracking-tight text-foreground">
+                {clientName.trim() ? "Seleccionado" : "Pendiente"}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Datos de facturación y entrega
+              </p>
+            </div>
           </div>
-        </FieldGroup>
+        </div>
+
+        <div className="rounded-xl border border-border/60 bg-background px-4 py-3">
+          <div className="flex items-start gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Package className="h-4.5 w-4.5" />
+            </div>
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                Productos
+              </p>
+              <p className="mt-1 text-xl font-semibold tracking-tight text-foreground">
+                {totalProductos}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {totalUnidades} unidades cargadas
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-border/60 bg-background px-4 py-3">
+          <div className="flex items-start gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <CalendarDays className="h-4.5 w-4.5" />
+            </div>
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                Fecha
+              </p>
+              <p className="mt-1 text-xl font-semibold tracking-tight text-foreground">
+                {date ? new Date(date).toLocaleDateString("es-AR") : "-"}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Registro del pedido
+              </p>
+            </div>
+          </div>
+        </div>
       </section>
 
-      <section className="space-y-4">
-        <div className="flex items-center justify-between gap-3 border-b border-border/60 pb-2">
-          <p className="text-sm font-semibold text-foreground">Productos</p>
+      <section className="overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm">
+        <div className="border-b border-border/60 px-5 py-4">
+          <p className="text-sm font-semibold text-foreground">Datos del cliente</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Seleccioná el cliente y completá la información comercial del pedido.
+          </p>
+        </div>
 
-          <Button type="button" variant="outline" size="sm" onClick={addItem} className="rounded-md">
+        <div className="px-5 py-5">
+          <FieldGroup>
+            <div className="grid gap-4 lg:grid-cols-2">
+              <Field>
+                <FieldLabel htmlFor="clientName">Cliente *</FieldLabel>
+                <Input
+                  id="clientName"
+                  list="clients-suggestions"
+                  type="text"
+                  placeholder="Buscá o escribí el nombre del cliente"
+                  value={clientName}
+                  onChange={(e) => handleClientNameChange(e.target.value)}
+                  required
+                />
+                <datalist id="clients-suggestions">
+                  {clientOptions.map((client) => (
+                    <option key={client.id} value={client.name} />
+                  ))}
+                </datalist>
+              </Field>
+
+              <Field>
+                <FieldLabel htmlFor="date">Fecha *</FieldLabel>
+                <Input
+                  id="date"
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  required
+                />
+              </Field>
+
+              <Field>
+                <FieldLabel htmlFor="clientCuit">CUIT</FieldLabel>
+                <Input
+                  id="clientCuit"
+                  type="text"
+                  placeholder="XX-XXXXXXXX-X"
+                  value={clientCuit}
+                  onChange={(e) => setClientCuit(e.target.value)}
+                />
+              </Field>
+
+              <Field>
+                <FieldLabel htmlFor="clientAddress">Dirección</FieldLabel>
+                <Input
+                  id="clientAddress"
+                  type="text"
+                  placeholder="Dirección del cliente"
+                  value={clientAddress}
+                  onChange={(e) => setClientAddress(e.target.value)}
+                />
+              </Field>
+            </div>
+          </FieldGroup>
+        </div>
+      </section>
+
+      <section className="overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm">
+        <div className="flex items-center justify-between gap-3 border-b border-border/60 px-5 py-4">
+          <div>
+            <p className="text-sm font-semibold text-foreground">Productos del pedido</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Agregá productos, cantidades, precios y validá stock antes de guardar.
+            </p>
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={addItem}
+            className="rounded-md"
+          >
             <Plus className="mr-1 h-4 w-4" />
-            Agregar
+            Agregar producto
           </Button>
         </div>
 
-        <div className="space-y-3">
-          <div className="hidden border-b border-border/60 pb-2 text-sm font-medium text-muted-foreground sm:grid sm:grid-cols-12 sm:gap-4">
-            <div className="col-span-5">Producto</div>
-            <div className="col-span-2">Cantidad</div>
-            <div className="col-span-2">Precio unit.</div>
-            <div className="col-span-2 text-right">Subtotal</div>
-            <div className="col-span-1" />
+        <div className="px-5 py-5">
+          <div className="space-y-3">
+            <div className="hidden border-b border-border/60 pb-2 text-sm font-medium text-muted-foreground sm:grid sm:grid-cols-12 sm:gap-4">
+              <div className="col-span-5">Producto</div>
+              <div className="col-span-2">Cantidad</div>
+              <div className="col-span-2">Precio unitario</div>
+              <div className="col-span-2 text-right">Subtotal</div>
+              <div className="col-span-1" />
+            </div>
+
+            {items.map((item, index) => {
+              const availableStock = getItemStock(item.product_id)
+
+              return (
+                <div
+                  key={item.id}
+                  className="rounded-xl border border-border/60 bg-background p-4 sm:grid sm:grid-cols-12 sm:items-start sm:gap-4"
+                >
+                  <div className="space-y-3 sm:col-span-5 sm:space-y-0">
+                    <label className="text-sm text-muted-foreground sm:hidden">Producto</label>
+                    <Input
+                      list={`products-suggestions-${index}`}
+                      placeholder="Seleccioná un producto"
+                      value={item.description}
+                      onChange={(e) => handleDescriptionChange(item.id, e.target.value)}
+                      required
+                    />
+                    <datalist id={`products-suggestions-${index}`}>
+                      {productOptions.map((product) => (
+                        <option key={product.id} value={product.name} />
+                      ))}
+                    </datalist>
+
+                    {item.product_id ? (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Stock disponible: {availableStock ?? 0}
+                      </p>
+                    ) : item.description.trim() ? (
+                      <p className="mt-1 text-xs text-destructive">
+                        Este producto no existe en el catálogo.
+                      </p>
+                    ) : null}
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-2 gap-3 sm:col-span-2 sm:mt-0 sm:block">
+                    <div>
+                      <label className="text-sm text-muted-foreground sm:hidden">Cantidad</label>
+                      <Input
+                        type="number"
+                        min="1"
+                        step="1"
+                        placeholder="Cant."
+                        value={item.quantity || ""}
+                        onChange={(e) =>
+                          updateItem(item.id, "quantity", parseInt(e.target.value, 10) || 0)
+                        }
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-2 gap-3 sm:col-span-2 sm:mt-0 sm:block">
+                    <div>
+                      <label className="text-sm text-muted-foreground sm:hidden">
+                        Precio unitario
+                      </label>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="Precio"
+                        value={item.unit_price || ""}
+                        onChange={(e) =>
+                          updateItem(item.id, "unit_price", parseFloat(e.target.value) || 0)
+                        }
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-3 sm:col-span-2 sm:mt-0 sm:text-right">
+                    <label className="text-sm text-muted-foreground sm:hidden">Subtotal</label>
+                    <p className="pt-2 font-medium text-foreground sm:pt-2.5">
+                      $
+                      {(item.quantity * item.unit_price).toLocaleString("es-AR", {
+                        minimumFractionDigits: 2,
+                      })}
+                    </p>
+                  </div>
+
+                  <div className="mt-3 flex justify-end sm:col-span-1 sm:mt-0">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => removeItem(item.id)}
+                      disabled={items.length === 1}
+                      className="rounded-md text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )
+            })}
           </div>
 
-          {items.map((item, index) => {
-            const availableStock = getItemStock(item.product_id)
+          <div className="mt-5 flex flex-col gap-3 border-t border-border/60 pt-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="text-sm text-muted-foreground">
+              {totalProductos} productos · {totalUnidades} unidades
+            </div>
 
-            return (
-              <div
-                key={item.id}
-                className="border-b border-border/60 pb-3 sm:grid sm:grid-cols-12 sm:items-start sm:gap-4"
-              >
-                <div className="space-y-3 sm:col-span-5 sm:space-y-0">
-                  <label className="text-sm text-muted-foreground sm:hidden">Producto</label>
-                  <Input
-                    list={`products-suggestions-${index}`}
-                    placeholder="Producto"
-                    value={item.description}
-                    onChange={(e) => handleDescriptionChange(item.id, e.target.value)}
-                    required
-                  />
-                  <datalist id={`products-suggestions-${index}`}>
-                    {productOptions.map((product) => (
-                      <option key={product.id} value={product.name} />
-                    ))}
-                  </datalist>
-
-                  {item.product_id ? (
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Stock disponible: {availableStock ?? 0}
-                    </p>
-                  ) : item.description.trim() ? (
-                    <p className="mt-1 text-xs text-destructive">
-                      Este producto no existe en el inventario.
-                    </p>
-                  ) : null}
-                </div>
-
-                <div className="mt-3 grid grid-cols-2 gap-3 sm:col-span-2 sm:mt-0 sm:block">
-                  <div>
-                    <label className="text-sm text-muted-foreground sm:hidden">Cantidad</label>
-                    <Input
-                      type="number"
-                      min="1"
-                      step="1"
-                      placeholder="Cant."
-                      value={item.quantity || ""}
-                      onChange={(e) =>
-                        updateItem(item.id, "quantity", parseInt(e.target.value, 10) || 0)
-                      }
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="mt-3 grid grid-cols-2 gap-3 sm:col-span-2 sm:mt-0 sm:block">
-                  <div>
-                    <label className="text-sm text-muted-foreground sm:hidden">Precio unit.</label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      placeholder="Precio"
-                      value={item.unit_price || ""}
-                      onChange={(e) =>
-                        updateItem(item.id, "unit_price", parseFloat(e.target.value) || 0)
-                      }
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="mt-3 sm:col-span-2 sm:mt-0 sm:text-right">
-                  <label className="text-sm text-muted-foreground sm:hidden">Subtotal</label>
-                  <p className="pt-2 font-medium text-foreground sm:pt-2.5">
-                    $
-                    {(item.quantity * item.unit_price).toLocaleString("es-AR", {
-                      minimumFractionDigits: 2,
-                    })}
-                  </p>
-                </div>
-
-                <div className="mt-3 flex justify-end sm:col-span-1 sm:mt-0">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={() => removeItem(item.id)}
-                    disabled={items.length === 1}
-                    className="rounded-md text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-
-        <div className="flex justify-end border-t border-border/60 pt-4">
-          <div className="text-right">
-            <p className="text-sm text-muted-foreground">Total</p>
-            <p className="text-2xl font-semibold tracking-tight text-foreground">
-              $
-              {calculateTotal().toLocaleString("es-AR", {
-                minimumFractionDigits: 2,
-              })}
-            </p>
+            <div className="rounded-lg bg-muted/30 px-4 py-3 text-right">
+              <p className="text-sm text-muted-foreground">Total del pedido</p>
+              <p className="text-2xl font-semibold tracking-tight text-foreground">
+                $
+                {calculateTotal().toLocaleString("es-AR", {
+                  minimumFractionDigits: 2,
+                })}
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
       {error ? (
-        <div className="border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+        <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
           {error}
         </div>
       ) : null}
 
       <div className="flex flex-col-reverse gap-2 border-t border-border/60 pt-4 sm:flex-row sm:justify-end">
-        <Button type="button" variant="outline" onClick={() => router.back()} size="sm" className="rounded-md">
-          Cancelar
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => router.back()}
+          size="sm"
+          className="rounded-md"
+        >
+          Volver
         </Button>
 
         <Button type="submit" size="sm" disabled={loading} className="rounded-md">
           {loading ? <Spinner className="mr-2" /> : null}
-          Guardar registro #{nextNumber}
+          {loading ? "Guardando..." : `Guardar pedido #${nextNumber}`}
         </Button>
       </div>
     </form>

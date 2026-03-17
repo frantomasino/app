@@ -102,7 +102,7 @@ export function GeneratePdfButton({ remito, company }: GeneratePdfButtonProps) {
 
       let companyInfoY = headerTopY + 2
 
-      companyInfoY = addText(company.name || "Mi Empresa", companyTextStartX, companyInfoY, {
+      companyInfoY = addText(company.name || "Mi negocio", companyTextStartX, companyInfoY, {
         fontSize: 16,
         fontStyle: "bold",
         maxWidth: 90,
@@ -130,7 +130,7 @@ export function GeneratePdfButton({ remito, company }: GeneratePdfButtonProps) {
 
       doc.setFont("helvetica", "bold")
       doc.setFontSize(20)
-      doc.text(`VENTA #${remito.number}`, pageWidth - margin, margin + 4, {
+      doc.text(`PEDIDO #${remito.number}`, pageWidth - margin, margin + 4, {
         align: "right",
       })
 
@@ -146,7 +146,7 @@ export function GeneratePdfButton({ remito, company }: GeneratePdfButtonProps) {
       y = Math.max(companyInfoY, margin + 24)
       y += 8
 
-      doc.setDrawColor(200)
+      doc.setDrawColor(210)
       doc.line(margin, y, pageWidth - margin, y)
       y += 10
 
@@ -183,14 +183,14 @@ export function GeneratePdfButton({ remito, company }: GeneratePdfButtonProps) {
 
       const tableStartX = margin
 
-      doc.setFillColor(240, 240, 240)
+      doc.setFillColor(242, 244, 247)
       doc.rect(tableStartX, y - 4, pageWidth - margin * 2, 10, "F")
 
       let x = tableStartX
       doc.setFont("helvetica", "bold")
       doc.setFontSize(10)
 
-      doc.text("Descripción", x + 2, y + 2)
+      doc.text("Producto", x + 2, y + 2)
       x += colWidths.description
       doc.text("Cant.", x, y + 2, { align: "center" })
       x += colWidths.quantity
@@ -243,7 +243,7 @@ export function GeneratePdfButton({ remito, company }: GeneratePdfButtonProps) {
       })
 
       y += 5
-      doc.setDrawColor(200)
+      doc.setDrawColor(210)
       doc.line(margin, y, pageWidth - margin, y)
       y += 8
 
@@ -263,11 +263,11 @@ export function GeneratePdfButton({ remito, company }: GeneratePdfButtonProps) {
       doc.setFontSize(8)
       doc.setFont("helvetica", "normal")
       doc.setTextColor(128)
-      doc.text("Documento generado con Scarlo", pageWidth / 2, footerY, {
+      doc.text("Documento generado desde el panel comercial", pageWidth / 2, footerY, {
         align: "center",
       })
 
-      doc.save(`venta-${remito.number}.pdf`)
+      doc.save(`pedido-${remito.number}.pdf`)
     } catch (error) {
       console.error("Error generating PDF:", error)
     } finally {

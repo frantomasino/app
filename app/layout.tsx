@@ -3,16 +3,24 @@ import { Geist, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 
-const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" })
-const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" })
+const geist = Geist({
+  subsets: ["latin"],
+  variable: "--font-geist-sans",
+})
+
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-geist-mono",
+})
 
 export const metadata: Metadata = {
   title: {
-    default: "Cotizaciones",
-    template: "%s | Scarlo",
+    default: "Panel comercial",
+    template: "%s | Panel comercial",
   },
-  description: "Sistema de gestión comercial para negocios: clientes, ventas, productos y control diario en un solo lugar.",
-  applicationName: "Cotizaciones",
+  description:
+    "Sistema de gestión comercial para comercios: pedidos, clientes, productos, stock y control diario en un solo lugar.",
+  applicationName: "Panel comercial",
   generator: "Next.js",
   icons: {
     icon: [
@@ -39,9 +47,9 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
       <body
-        className={`${geist.variable} ${geistMono.variable} font-sans antialiased bg-background text-foreground`}
+        className={`${geist.variable} ${geistMono.variable} bg-background font-sans text-foreground antialiased`}
       >
         {children}
         <Analytics />

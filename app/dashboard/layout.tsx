@@ -29,15 +29,16 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      <aside className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-64 lg:flex-col">
+    <div className="min-h-screen bg-background">
+      <aside className="hidden lg:fixed lg:inset-y-0 lg:z-40 lg:flex lg:w-[272px] lg:flex-col">
         <DashboardSidebar company={company} />
       </aside>
 
-      <div className="lg:pl-64">
+      <div className="min-h-screen lg:pl-[272px]">
         <DashboardHeader company={company} />
-        <main className="p-4 md:p-6 lg:p-8">
-          {children}
+
+        <main className="px-4 py-4 md:px-6 md:py-5 lg:px-8 lg:py-6">
+          <div className="mx-auto w-full max-w-[1500px]">{children}</div>
         </main>
       </div>
     </div>
